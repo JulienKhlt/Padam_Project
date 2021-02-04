@@ -1,0 +1,38 @@
+#+TITLE: Padam
+#+AUTHOR: Julien KHLAUT
+
+Projet de voyageur de commerce =mTSP=
+
+* Bases du projet :
+    Transport à la demande,
+    comment insérer les transports à la demande ?
+    Bases d'arrêts avec position défines
+    Adresse de départ et d'arrivée
+    Spécifier l'arret de bus que l'on veut
+
+    Mise à jour à chaque réservation, en temps réel
+    Marge d'erreur faible sur ce qui est annoncé
+    Le gamma taux maximum de détour
+    Gamma autour de 2
+
+    Service de rabattement vers une gare ou d'une gare
+
+    /On ne peut pas refuser un service déjà accepté/
+
+
+* Objectifs
+** TODO Etudier le problème du voyageur de commerce
+** TODO Créer le git
+** TODO Créer des données à partir d'open street maps
+** TODO Réfléchir au structure de données (réaliser un schéma)
+
+
+* Etude
+** Voyageur de commerce par programmation dynamique n²2^n
+*** /M. Held et R.M. Karp, « A Dynamic Programming Approach to Sequencing Problems », Journal of the Society for Industrial and Applied Mathematics, 1962, 10 (1), 196–210./
+*** Cas bitonique facile /cf Jon Louis Bentley/
+** TODO Branch and cut
+** Arbre couvrant (approximation d'ordre 2)
+** Heuristiques :
+*** Lin-Kernighan ( 2-opt )
+*** Ruiner et recréer
