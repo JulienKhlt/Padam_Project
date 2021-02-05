@@ -1,7 +1,7 @@
 #+TITLE: Padam
 #+AUTHOR: Julien KHLAUT
 
-Projet de voyageur de commerce =mTSP=
+Projet de voyageur de commerce =mTSP= (problème de tournées de véhicule)
 
 * Bases du projet :
     Transport à la demande,
@@ -21,18 +21,53 @@ Projet de voyageur de commerce =mTSP=
 
 
 * Objectifs
-** TODO Etudier le problème du voyageur de commerce
-** TODO Créer le git
-** TODO Créer des données à partir d'open street maps
-** TODO Réfléchir au structure de données (réaliser un schéma)
+** DONE Etudier le problème du voyageur de commerce
+CLOSED: [2021-02-04 jeu. 15:57]
+** DONE Créer le git
+CLOSED: [2021-02-04 jeu. 20:56]
+** DONE Créer des données à partir d'open street maps
+CLOSED: [2021-02-04 jeu. 20:56]
+** DONE Réfléchir aux structures de données (réaliser un schéma)
+CLOSED: [2021-02-04 jeu. 20:55]
 
 
-* Etude
+* Etude TSP
 ** Voyageur de commerce par programmation dynamique n²2^n
 *** /M. Held et R.M. Karp, « A Dynamic Programming Approach to Sequencing Problems », Journal of the Society for Industrial and Applied Mathematics, 1962, 10 (1), 196–210./
 *** Cas bitonique facile /cf Jon Louis Bentley/
+** TODO Cas euclidien :
+*** Sanjeev Arora, « Polynomial time approximation schemes for Euclidean traveling salesman and other geometric problems »
 ** TODO Branch and cut
+** TODO Linear problem (relaxed)
+*** Robert D. Carr et Santosh Vempala, « On the Held-Karp relaxation for the asymmetric and symmetric traveling salesman problems »
+*** « The Traveling Salesman Problem, the Subtour LP, and the Held-Karp Lower Bound »
 ** Arbre couvrant (approximation d'ordre 2)
-** Heuristiques :
+** TODO Heuristiques :
 *** Lin-Kernighan ( 2-opt )
 *** Ruiner et recréer
+*** Méta-heuristiques gloutonnes
+
+
+* Questions
+** Prendre en compte les camions ? Utilisable plusieurs fois ? On suppose que l'on en a K ?
+
+
+* Conclusion
+Notre problème est un VRPTW qui a en plus les caractéristiques suivantes :
+- Capacités des véhicules illimitée (VRP)
+- Avec TW
+- Flotte de véhicule homogène
+- Demande aléatoire (temps réel)
+- Multi dépots
+- Pick-up & Delivery (VRPPD)
+- Plusieurs routes Multi-trip
+- Longueur maximale illimitée (ou pas DCVRP)
+
+  Donc sans doute *VRPPDTW*
+
+  source : /Résolution des problèmes de tournées de véhicules pour le transport des échantillons biomédicaux au Québec/ Thomas Chabot
+
+  Outils Google OR-Tools
+  Operations Research Proceedings 2005: Selected Papers of the Annual ...
+publié par Hans-Dietrich Haasis, Herbert Kopfer, Jörn
+    Finding optimal solutions forvehicle routing problem with pickup and delivery services with time windows:A dynamic programming approach based on state–space–time network representations
