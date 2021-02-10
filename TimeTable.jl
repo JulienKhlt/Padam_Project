@@ -7,7 +7,7 @@ include("Bus.jl")
 struct TimeTable
     people::Vector{Person}
     bus::Bus
-    map::SparseMatrixCSC{Int,Int} 
+    map::SparseMatrixCSC{Int,Int}
 
     TimeTable(; people, bus, map) = new(people, bus, map)
 end
@@ -24,4 +24,9 @@ function parser(file_name)
         end
     end
     return map
+end
+
+function add_people(start_time, end_time, people)
+    push!(people,Person(start_time = people.length()+1, start_time = start_time, end_time = end_time))
+    return people
 end
