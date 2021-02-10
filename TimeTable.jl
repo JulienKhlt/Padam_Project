@@ -26,7 +26,13 @@ function parser(file_name)
     return map
 end
 
-function add_people(start_time, end_time, people)
-    push!(people,Person(start_time = people.length()+1, start_time = start_time, end_time = end_time))
+function add_people(start_time, end_time, start_point, people)
+    push!(people,Person(start_point = start_point, start_time = start_time, end_time = end_time))
+    return people
+end
+
+function init_people(train_departure)
+    people = zeros(0)
+    push!(people,Person(start_point = 1, start_time = train_departure, end_time = train_departure))
     return people
 end
