@@ -20,7 +20,7 @@ end
 function affichage(T, nb_people)
     for i in 1:nb_people
         println(string(i, " ", value(T[i])))
-    end    
+    end
 end
 
 function resolution_tsptw(nb_people, people, map, M)
@@ -44,13 +44,9 @@ function resolution_tsptw(nb_people, people, map, M)
     affichage(T, nb_people)
 end
 
-Person(start_point = 5, start_time = 1000, end_time = 1000)
 
-people = [Person(start_point = 1, start_time = 0, end_time = 1000), 
-    Person(start_point = 2, start_time = 0, end_time = 1000),
-    Person(start_point = 3, start_time = 0, end_time = 1000),
-    Person(start_point = 5, start_time = 1000, end_time = 1000)]
+map = parser("C:/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/small.csv")
 
-map = parser("Data/small.csv")
+people = build_people("C:/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/people.csv")
 
 resolution_tsptw(4, people, map, 10000)
