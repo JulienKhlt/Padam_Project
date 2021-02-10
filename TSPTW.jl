@@ -19,8 +19,10 @@ function resolution_tsptw(n, people, map, M)
 
     @variable(model, T[1:n] >= 0)
     @variable(model, y[1:n, 1:n], Bin)
+    
 
     a, b = get_bound(people, n)
+    # le client part dans un intervalle [a, b]
 
     @constraint(model, [i in 1:n, j in 1:n], T[i] - T[j] + M*y[i, j] >= map[i, j])
     @constraint(model, [i in 1:n, j in 1:n], T[j] - T[i] - M*y[i, j] >= map[i, j] - M)
