@@ -31,8 +31,8 @@ function add_people(start_time, end_time, start_point, people)
     return people
 end
 
-function init_people(train_departure)
-    people = zeros(0)
-    push!(people,Person(start_point = 1, start_time = train_departure, end_time = train_departure))
+function init_people(train_index, train_departure)
+    people = []
+    push!(people,Person(start_point = train_index, start_time = train_departure, end_time = train_departure))
     return people
 end
