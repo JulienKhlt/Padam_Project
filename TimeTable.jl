@@ -3,13 +3,14 @@ using LightGraphs
 
 include("Person.jl")
 include("Bus.jl")
+include("TSPTW.jl")
 
 struct TimeTable
     people::Vector{Person}
-    bus::Bus
-    map::SparseMatrixCSC{Int,Int}
+    # bus::Bus
+    map
 
-    TimeTable(; people, bus, map) = new(people, bus, map)
+    TimeTable(; people, map) = new(people, map)
 end
 
 function parser(file_name)
@@ -20,14 +21,25 @@ function parser(file_name)
     map = spzeros(n, n)
     for i in 1:n
         for j in 1:n
-            map[i, parse(Int,data[1+n*(i-1)+j][3])] = parse(Float64, data[1+n*(i-1)+j][5:length(data[1+n*(i-1)+j])])
+            D = rsplit(data[1+n*(i-1)+j], " ")
+            map[i, parse(Int, D[2])] = parse(Float64, D[3])
         end
     end
     return map
 end
 
+function people_map(people, nb_people, map)
+    new_map = spzeros(nb_people, nb_people)
+    for i in 1:nb_people
+        for j in 1:nb_people
+            new_map[i, j] = map[people[i].start_point, people[j].start_point]
+        end
+    end
+    return new_map
+end
+
 function add_person(start_point,start_time, end_time, people)
-    push!(people,Person(start_point = start_point, start_time = start_time, end_time = end_time))
+    push!(people, Person(start_point = start_point, start_time = start_time, end_time = end_time))
     return people
 end
 
@@ -55,4 +67,15 @@ function build_people(file_name)
         add_person(start_point, start_time, end_time, people)
     end
     return people
+end
+
+function resolution(timetable)
+    resolution_tsptw(length(timetable.people), timetable.people, timetable.map, 10000)
+end
+
+people = build_people("Data/people_huge.csv")
+map = parser("Data/huge.csv")
+timetable = TimeTable(people = people, map = map)
+for i in 1:1
+    resolution(timetable)
 end
