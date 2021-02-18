@@ -11,4 +11,4 @@ function creation_data(file_name::String, nb_people, train_departure)
     end
 end
 
-creation_data("Data/people_huge.csv", 1000, 100000)
+creation_data("Data/people_small.csv", 5, 1000)

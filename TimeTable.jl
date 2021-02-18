@@ -4,10 +4,10 @@ using LightGraphs
 include("Person.jl")
 include("Bus.jl")
 include("TSPTW.jl")
+include("mTSPTW.jl")
 
 struct TimeTable
     people::Vector{Person}
-    # bus::Bus
     map
 
     TimeTable(; people, map) = new(people, map)
@@ -38,44 +38,24 @@ function people_map(people, nb_people, map)
     return new_map
 end
 
-function add_person(start_point,start_time, end_time, people)
-    push!(people, Person(start_point = start_point, start_time = start_time, end_time = end_time))
-    return people
-end
-
-function init_people(train_index, train_departure)
-    people = []
-    push!(people,Person(start_point = train_index, start_time = train_departure, end_time = train_departure))
-    return people
-end
-
-function build_people(file_name)
-    data = open(file_name) do file
-        readlines(file)
-    end
-    train_index, train_departure = split(data[1], " ")
-    train_index =  parse(Int,train_index)
-    train_departure = parse(Int, train_departure)
-    nb_client =  parse(Int, data[2])
-    people = init_people(train_index, train_departure)
-
-    for i in 1:nb_client
-        start_point, start_time, end_time = split(data[2+i], " ")
-        start_point =  parse(Int, start_point)
-        start_time =  parse(Int, start_time)
-        end_time =  parse(Int, end_time)
-        add_person(start_point, start_time, end_time, people)
-    end
-    return people
-end
-
 function resolution(timetable)
     resolution_tsptw(length(timetable.people), timetable.people, timetable.map, 10000)
 end
 
-people = build_people("Data/people_huge.csv")
-map = parser("Data/huge.csv")
-timetable = TimeTable(people = people, map = map)
-for i in 1:1
-    resolution(timetable)
+function resolution_mbus(timetable, nb_bus, verbose = false)
+    x = resolution_mtsptw(length(timetable.people), nb_bus, timetable.people, timetable.map, verbose)
+    return creation_bus(timetable.people, length(timetable.people), x)
 end
+
+# people = build_people("Data/people_huge.csv")
+# map = parser("Data/huge.csv")
+# timetable = TimeTable(people = people, map = map)
+# for i in 1:1
+#     resolution(timetable)
+# end
+
+people = build_people("Data/people_large.csv")
+map = parser("Data/large.csv")
+timetable = TimeTable(people = people, map = map)
+# resolution_mtsptw(length(people), 2, people, map)
+resolution_mbus(timetable, 5, true)
