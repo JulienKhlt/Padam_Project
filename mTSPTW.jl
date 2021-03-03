@@ -25,16 +25,9 @@ function parties(nb_people)
                 push!(part, j)
             end
         end
-        println(list)
         push!(Parties, part)
     end
     return Parties
-end
-
-function affichage(T, nb_people)
-    for i in 1:nb_people+1
-        println(string("   ", i, " ", value(T[i])))
-    end
 end
 
 function printing(y, nb_people)
@@ -76,11 +69,11 @@ function resolution_mtsptw(nb_people, nb_bus, people, map, verbose = false)
 
 
 
-    @objective(model, Min, T[1])
+    @objective(model, Max, sum(T[i] for i in 1:nb_people))
     optimize!(model)
 
     if verbose
-        affichage(T, nb_people)
+        affichage(T, nb_people + 1)
         printing(x, nb_people)
     end
 

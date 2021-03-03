@@ -26,7 +26,7 @@ function resolution_tsptw(nb_people, people, map, M)
     @constraint(model, [i in 1:nb_people], T[i] >= a[i])
     @constraint(model, [i in 1:nb_people], T[i] <= b[i])
 
-    @objective(model, Min, T[nb_people])
+    @objective(model, Max, sum(T[i] for i in 1:nb_people))
     optimize!(model)
 
     affichage(T, nb_people)

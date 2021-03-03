@@ -129,10 +129,11 @@ end
 #     resolution(timetable)
 # end
 
-#people = build_people("Data/people_large.csv")
-#map = parser("Data/large.csv")
-map = parser_real_file("Data/mTSP_matrix.csv")
-people = build_people_real_file("Data/customer_requests.csv", "Data/driver_shifts.csv", "Data/mTSP_matrix.csv", "Data/gammas.csv")
+people = build_people("Data/people_small.csv")
+map = parser("Data/small.csv")
+# map = parser_real_file("Data/mTSP_matrix.csv")
+# people = build_people_real_file("Data/customer_requests.csv", "Data/driver_shifts.csv", "Data/mTSP_matrix.csv", "Data/gammas.csv")
 timetable = TimeTable(people = people, map = map)
 # resolution_mtsptw(length(people), 2, people, map)
-resolution_mbus(timetable, 5, true)
+# resolution(timetable)
+resolution_mbus(timetable, 1, true)
