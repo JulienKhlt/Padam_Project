@@ -33,11 +33,11 @@ function parser_real_file(file_name)
         readlines(file)
     end
     n = length(data)
-    print(n)
+    # print(n)
     map = spzeros(n, n)
     for i in 1:n
+        D = rsplit(data[i], ";")
         for j in 1:n
-            D = rsplit(data[i], ";")
             map[i, j] = parse(Float64, D[j])
         end
     end
@@ -56,7 +56,7 @@ function people_map(people, nb_people, map)
 end
 
 function convert_time_str_int(time)
-    #conversion from format h:m:s to seconds
+    # conversion from format h:m:s to seconds
     time_str = split(time, ":")
     time_int = parse(Int,time_str[3]) + 60*parse(Int,time_str[2]) + 3600*parse(Int,time_str[1])
     return time_int
@@ -129,11 +129,12 @@ end
 #     resolution(timetable)
 # end
 
-people = build_people("Data/people_small.csv")
-map = parser("Data/small.csv")
-# map = parser_real_file("Data/mTSP_matrix.csv")
-# people = build_people_real_file("Data/customer_requests.csv", "Data/driver_shifts.csv", "Data/mTSP_matrix.csv", "Data/gammas.csv")
+# people = build_people("Data/people_small.csv")
+# map = parser("Data/small.csv")
+map = parser_real_file("Data/mTSP_matrix.csv")
+people = build_people_real_file("Data/customer_requests.csv", "Data/driver_shifts.csv", "Data/mTSP_matrix.csv", "Data/gammas.csv")
+print(people)
 timetable = TimeTable(people = people, map = map)
 # resolution_mtsptw(length(people), 2, people, map)
 # resolution(timetable)
-resolution_mbus(timetable, 1, true)
+# resolution_mbus(timetable, 1, true)
