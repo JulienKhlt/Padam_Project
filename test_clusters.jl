@@ -13,6 +13,7 @@ people = build_people("Data/people_small.csv")
 
 cluster = Cluster([1, 2, 3])
 cluster2 = Cluster([1, 5])
+println(check_cluster(cluster, map, people))
 sol = Solution([cluster, cluster2], 3, map)
 add_point!(4, sol)
 println(sol)

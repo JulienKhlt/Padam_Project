@@ -64,6 +64,16 @@ function compute_solution(solution, all_people)
     return [creation_bus(solution.clusters[i], i, solution.map, all_people) for i in 1:length(solution.clusters)]
 end
 
+function check_cluster(cluster, map, all_people)
+    people = find_people(cluster, all_people)
+    try
+        resolution_tsptw(length(people), people, map, 10000)
+        return true
+    catch
+        return false
+    end
+end
+
 function add_point!(point, sol::Solution)
     cluster = sol.clusters[closest(point, sol)]
     if length(cluster.points) != sol.length_max
