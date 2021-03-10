@@ -77,20 +77,22 @@ function resolution_mtsptw(nb_people, nb_bus, people, map, verbose = false)
         printing(x, nb_people)
     end
 
-    return x    
+    return x, T   
 end
 
 
-function creation_bus(people, nb_people, x)
+function creation_bus(people, nb_people, x, T)
     Buses =[]
     id = 1
     for i in 1:nb_people
         stops = []
         bus_people = []
+        time = []
         if value(x[nb_people + 1, i]) == 1
             pos = i
             push!(stops, people[pos].start_point)
             push!(bus_people, people[pos])
+            push!(time, value(T[pos]))
             while pos != 1
                 for j in 1:nb_people
                     if value(x[pos, j]) == 1
@@ -100,11 +102,11 @@ function creation_bus(people, nb_people, x)
                 end
                 push!(stops, people[pos].start_point)
                 push!(bus_people, people[pos])
+                push!(time, value(T[pos]))
             end
-            push!(Buses, Bus(id = id, people = bus_people, stops = stops))
+            push!(Buses, Bus(id = id, people = bus_people, stops = stops, time = time))
             id += 1
         end
     end
-    print(Buses)
     return Buses
 end

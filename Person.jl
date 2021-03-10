@@ -36,3 +36,7 @@ function build_people(file_name)
     end
     return people
 end
+
+function find_people(cluster, all_people)
+    return [i for i in all_people if i.start_point in cluster.points]
+end

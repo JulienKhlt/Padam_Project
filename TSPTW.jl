@@ -30,4 +30,32 @@ function resolution_tsptw(nb_people, people, map, M)
     optimize!(model)
 
     affichage(T, nb_people)
+    return T
+end
+
+function fastuniq(v)
+    v1 = Vector{eltype(v)}()
+    if length(v)>0
+        laste = v[1]
+        push!(v1,laste)
+        for e in v
+            if abs(e - laste) > 1e-10
+                laste = e
+                push!(v1,laste)
+            end
+        end
+    end
+    return v1
+end
+
+function order(T)
+    """function that return the order in which we see people"""
+    return sortperm(value.(T))
+end
+
+function order_point(T, people)
+    """function that return the order in which we see points"""
+    ordered = order(T)
+    points = [people[i].start_point for i in ordered]
+    return fastuniq(points), fastuniq(value.(T)[ordered])
 end
