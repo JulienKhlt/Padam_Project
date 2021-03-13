@@ -121,3 +121,44 @@ end
 map_sym,n = parser_real_file_symetry("Data/mTSP_matrix.csv")
 clusters = tours("Data/driver_shifts.csv",map_sym,n)
 print(clusters)
+
+
+function remove!(a, item)
+    deleteat!(a, findall(x->x==item, a))
+end
+
+function cluster_by_zones(warehouses, rep_warehouses, stops)
+    # warehouses is a list that gives the id of the warehouses
+    # rep_warehouses is a list that gives the repartition of the buses in the warehouses, 
+    # i.e the number of buses per warehouse
+    # stops is a list that gives the id of the buses stops
+    # warning : this function returns as many clusters as warehouses, not buses !!
+    nb_warehouses = length(warehouses)
+    nb_stops = length(stops)
+    nb_buses = 0
+    for i in 1:nb_warehouses
+        nb_buses += rep_warehouses[i]
+    end
+    nb_stops_per_warehouse = []
+    stops_in_warehouses = 0
+    for i in 1:nb_warehouses
+        if i<nb_warehouses
+            push!(nb_stops_per_warehouse, Int(nb_stops*rep_warehouses[i]/nb_buses))
+            stops_in_warehouses += Int(nb_stops*rep_warehouses[i]/nb_buses)
+        else
+            push!(nb_stops_per_warehouse, nb_stops - stops_in_warehouses)
+        end
+    end
+    stops_left = copy(stops)
+    all_clusters = []
+    for i in 1:nb_warehouses
+        current_cluster = []
+        while length(current_cluster) < nb_stops_per_warehouse[i]
+            nearest_stop = argmin([map[warehouses[i], j] for j in stops_left])
+            push!(current_cluster, stops_left[nearest_stop])
+            remove!(stops_left, stops_left[nearest_stop])
+        end
+        push!(all_clusters, current_cluster)
+    end
+    return all_clusters
+end
