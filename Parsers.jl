@@ -115,3 +115,29 @@ function build_people_real_file(client_file_name, driver_file_name, map_file_nam
     end
     return people
 end
+
+
+function build_people_real_file_only_client(client_file_name, driver_file_name, map_file_name, gamma_file_name, sym=false)
+    if sym
+        map = parser_real_file_symetry(map_file_name)[1]
+    else
+        map = parser_real_file(map_file_name)[1]
+    end
+    data_client = open(client_file_name) do file
+        readlines(file)
+    end
+
+    people = []
+
+    nb_client =  length(data_client)-1
+
+    for i in 1:nb_client
+        customer = split(data_client[1+i], ";")
+        start_point = parse(Int, customer[1])
+        end_point = parse(Int, customer[2])
+        start_time =  train_departure - acceptable_max_time(gamma_file_name, map, start_point, end_point)
+        end_time =  train_departure
+        add_person(start_point, start_time, end_time, people)
+    end
+    return people
+end

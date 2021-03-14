@@ -6,6 +6,7 @@ include("Bus.jl")
 include("TSPTW.jl")
 include("mTSPTW.jl")
 include("Parsers.jl")
+include("Cluster.jl")
 capa = 15
 
 function parser_drivers(driver_file_name)
@@ -26,6 +27,19 @@ function parser_drivers(driver_file_name)
     return driver_tab, train_index
 end
 
+function parser_index_client(client_file_name)
+    data_client = open(client_file_name) do file
+        readlines(file)
+    end
+    people = []
+    nb_client =  length(data_client)-1
+    for i in 1:nb_client
+        customer = split(data_client[1+i], ";")
+        start_point = parse(Int, customer[1])
+        push!(people, start_point)
+    end
+    return people
+end
 
 function depot_tour_groups(driver_file_name)
     drivers, train_index = parser_drivers(driver_file_name)
@@ -54,47 +68,46 @@ function depot_tour_groups(driver_file_name)
     return groups, train_index
 end
 
-function furthest(train_index, map, uncluster,n)
+function furthest(train_index, map, uncluster, index_client)
     index_min = 0
     mini = 100000
-    for i in 1:n
-        if uncluster[i] && map[train_index, i] < mini
+    for i in 1:length(index_client)
+        if uncluster[i] && map[train_index, index_client[i]] < mini
             index_min = i
-            mini = map[train_index, i]
+            mini = map[train_index, index_client[i]]
         end
     end
     return index_min
 end
 
-function geom_center(qi,map,uncluster,n)
+function geom_center(qi,map,uncluster, index_client)
     #pick the closest client to the geometricacl center of the cluster qi among the unclustered vertices
     v = 0
     mini = 100000
-    for i in 1:n
-        if uncluster[i] && 1/length(qi)*sum(map[i,qi[j]] for j in length(qi)) < mini
+    for i in 1:length(index_client)
+        if uncluster[i] && 1/length(qi)*sum(map[index_client[i],qi[j]] for j in length(qi)) < mini
             v = i
-            mini = 1/length(qi)*sum(map[i,qi[j]] for j in length(qi))
+            mini = 1/length(qi)*sum(map[index_client[i],qi[j]] for j in length(qi))
         end
     end
     return v
 end
 
-function clustering_loop(map, train_index, start_time, end_time, m,n)
+function clustering_loop(map, driver_index, train_index, m, index_client)
     #A_hybrid_column_generation_and_clustering_approach
     i = 0
-    #W = capa
-    W = ceil(n/m)
+    W = capa
+    n = length(index_client)
+    #W = ceil(n/m)
     uncluster = [true for i in 1:n]
-    uncluster[train_index] = false
     q = []
-    print(count(uncluster))
     while count(uncluster)!=0
-        v = furthest(train_index, map, uncluster,n)
+        v = furthest(driver_index, map, uncluster, index_client) #ou train_index pas sûre
         uncluster[v] = false
-        qi = [v]
+        qi = [driver_index, v]
         li = W - 1
         while li > 0 && count(uncluster)!=0
-            v = geom_center(qi, map, uncluster,n)
+            v = geom_center(qi, map, uncluster,index_client)
             uncluster[v] = false
             push!(qi, v)
             li -= 1
@@ -105,6 +118,19 @@ function clustering_loop(map, train_index, start_time, end_time, m,n)
 end
 
 
+function tours(driver_file_name, map, index_client)
+    tab, train_index = depot_tour_groups(driver_file_name)
+    clusters_tot = []
+    for i in 1:length(tab)
+        clusters = clustering_loop(map, tab[i][1][1],train_index, tab[i][2], index_client)
+        #clusters[i] = ensemble des clients dans le cluster i ie dessservis par le bus i
+        push!(clusters_tot, clusters)
+    end
+    return Cluster(clusters_tot)
+end
+
+
+"""
 function tours(driver_file_name, map, n)
     tab, train_index = depot_tour_groups(driver_file_name)
     clusters_tot = []
@@ -116,10 +142,12 @@ function tours(driver_file_name, map, n)
         end
     end
     return clusters_tot
-end
+end"""
+
 
 map_sym,n = parser_real_file_symetry("Data/mTSP_matrix.csv")
-clusters = tours("Data/driver_shifts.csv",map_sym,n)
+index_client = parser_index_client("Data/customer_requests.csv")
+clusters = tours("Data/driver_shifts.csv",map_sym, index_client)
 print(clusters)
 
 
@@ -129,7 +157,7 @@ end
 
 function cluster_by_zones(warehouses, rep_warehouses, stops)
     # warehouses is a list that gives the id of the warehouses
-    # rep_warehouses is a list that gives the repartition of the buses in the warehouses, 
+    # rep_warehouses is a list that gives the repartition of the buses in the warehouses,
     # i.e the number of buses per warehouse
     # stops is a list that gives the id of the buses stops
     # warning : this function returns as many clusters as warehouses, not buses !!
