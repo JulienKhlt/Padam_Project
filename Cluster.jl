@@ -57,6 +57,13 @@ function closest(point, Solution, list=false)
     end
 end
 
+function nbre_people(point, people)
+    return [people[i] for i in 1:length(people) if people[i].first_point == point]
+
+function closest(point, Solution)
+    return argmin([dist(point, Solution.map, i) for i in Solution.clusters])
+end
+
 function closest_convex(point, Solution)
 end
 
@@ -88,4 +95,3 @@ function add_point!(point, sol::Solution)
         println("Impossible")
     end
 end
-        
