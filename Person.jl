@@ -24,8 +24,9 @@ function build_people(file_name)
     train_index, train_departure = split(data[1], " ")
     train_index =  parse(Int,train_index)
     train_departure = parse(Int, train_departure)
+    gare = Person(start_point = train_index, start_time = train_departure, end_time = train_departure)
     nb_client =  parse(Int, data[2])
-    people = init_people(train_index, train_departure)
+    people = []
 
     for i in 1:nb_client
         start_point, start_time, end_time = split(data[2+i], " ")
@@ -34,7 +35,19 @@ function build_people(file_name)
         end_time =  parse(Int, end_time)
         add_person(start_point, start_time, end_time, people)
     end
-    return people
+
+    nb_depot =  parse(Int, data[2 + nb_client])
+    depots = []
+
+    for i in 1:nb_depots
+        start_point, start_time, end_time = split(data[2+ nb_people + i], " ")
+        start_point =  parse(Int, start_point)
+        start_time =  parse(Int, start_time)
+        end_time =  parse(Int, end_time)
+        add_person(start_point, start_time, end_time, depots)
+    end
+
+    return people, gare, depots
 end
 
 function find_people(cluster, all_people)
