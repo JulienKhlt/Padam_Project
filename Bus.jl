@@ -19,3 +19,8 @@ end
 function get_total_time(bus)
     return bus.time[length(bus.time)] - bus.time[1]
 end
+
+function compute_total_time(bus, map)
+    return sum(map(bus.stops[i], bus.stop[i+1]) for i in 1:length(bus.stop)-1)
+end
+

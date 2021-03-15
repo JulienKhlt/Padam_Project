@@ -41,7 +41,7 @@ function printing(y, nb_people)
     end
 end
 
-function resolution_mtsptw(nb_people, nb_bus, people, map, verbose = false)
+function resolution_mtsptw(nb_people, nb_bus, people, map, id_dep, verbose = false)
     # Pour l'instant un point = un client
     model = Model(Gurobi.Optimizer)
 
@@ -62,6 +62,7 @@ function resolution_mtsptw(nb_people, nb_bus, people, map, verbose = false)
     @constraint(model, [j in 2:nb_people], sum(x[i, j] for i in 1:(nb_people+1)) == 1)
     
     @constraint(model, sum(x[i, 1] for i in 1:nb_people+1) == nb_bus)
+    @constraint(model, [i in id_dep], x[nb_people+1, i] == 1)
     @constraint(model, sum(x[nb_people+1, i] for i in 1:nb_people) == nb_bus)
 
     Parties = parties(nb_people)

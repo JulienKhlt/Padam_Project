@@ -10,8 +10,9 @@ include("Parsers.jl")
 struct TimeTable
     people::Vector{Person}
     map
+    id_dep
 
-    TimeTable(; people, map) = new(people, map)
+    TimeTable(; people, map, id_dep) = new(people, map, id_dep)
 end
 
 
@@ -20,7 +21,7 @@ function resolution(timetable)
 end
 
 function resolution_mbus(timetable, nb_bus, verbose = false)
-    x, T = resolution_mtsptw(length(timetable.people), nb_bus, timetable.people, timetable.map, verbose)
+    x, T = resolution_mtsptw(length(timetable.people), nb_bus, timetable.people, timetable.map, timetable.id_dep, verbose)
     return creation_bus(timetable.people, length(timetable.people), x, T)
 end
 
@@ -37,7 +38,7 @@ map = parser("Data/small.csv")
 # people = build_people_real_file("Data/customer_requests.csv", "Data/driver_shifts.csv", "Data/mTSP_matrix.csv", "Data/gammas.csv")
 print(people)
 # timetable = TimeTable(people = people, map = map)
-x, T = resolution_mtsptw(length(people), 2, people, map)
+x, T = resolution_mtsptw(length(people), 2, people, map, [2])
 buses = creation_bus(people, length(people), x, T)
 println(buses)
 println(get_total_time(buses[1]))
