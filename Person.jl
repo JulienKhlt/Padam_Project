@@ -40,3 +40,9 @@ end
 function find_people(cluster, all_people)
     return [i for i in all_people if i.start_point in cluster.points]
 end
+
+function new_people(people, gare, depot)
+    new_people = people[:]
+    push!(new_people, gare)
+    append!(new_people, depot)
+    return new_people
