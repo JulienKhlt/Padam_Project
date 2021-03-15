@@ -2,6 +2,7 @@ include("TSPTW.jl")
 
 struct Cluster
     points::Vector{Int}
+    len
 end
 
 function Base.show(io::IO, cluster::Cluster)
@@ -81,10 +82,11 @@ function check_cluster(cluster, map, all_people)
     end
 end
 
-function add_point!(point, sol::Solution)
+function add_point!(point, sol::Solution, nb_point)
     cluster = sol.clusters[closest(point, sol)]
-    if length(cluster.points) != sol.length_max
+    if cluster.len <= sol.length_max - nb_point
         add_point!(point, cluster)
+        cluster.len += nb_point-
     else
         println("Impossible")
     end
