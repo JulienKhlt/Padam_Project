@@ -48,15 +48,18 @@ function dist(point, map, Cluster)
     return minimum([map[point, i] for i in Cluster.points])
 end
 
-function closest(point, people)
-    return argmin([map[point, people[i].first_point] for i in people])
+function closest(point, Solution, list=false)
+    # if list==true, return the closest cluster to point
+    # if list==false, return a list of the order of clusters for the point
+    if list
+        return sortperm([dist(point, Solution.map, i) for i in Solution.clusters])
+    else
+        return argmin([dist(point, Solution.map, i) for i in Solution.clusters])
+    end
 end
 
 function nbre_people(point, people)
     return [people[i] for i in 1:length(people) if people[i].first_point == point]
-
-function closest(point, Solution)
-    return argmin([dist(point, Solution.map, i) for i in Solution.clusters])
 end
 
 function closest_convex(point, Solution)
@@ -91,4 +94,3 @@ function add_point!(point, sol::Solution, nb_point)
         println("Impossible")
     end
 end
-        

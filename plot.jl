@@ -8,8 +8,8 @@ function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop},
     Y_list = []
     for i in 1:length(cluster.points)
         bus_stop = localisations[i]
-        push!(X_list, bus_stop.coordx)
-        push!(Y_list, bus_stop.coordy)
+        push!(X_list, bus_stop.latitude)
+        push!(Y_list, bus_stop.longitude)
     end
     plot!(
         pl, X_list, Y_list,

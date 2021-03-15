@@ -2,6 +2,7 @@ using SparseArrays
 using LightGraphs
 
 include("Person.jl")
+include("Localisations")
 
 function parser(file_name)
     data = open(file_name) do file
@@ -140,4 +141,23 @@ function build_people_real_file_only_client(client_file_name, driver_file_name, 
         add_person(start_point, start_time, end_time, people)
     end
     return people
+end
+
+
+function build_localisations(node_coordinates_file_name)
+    data_coord = open(node_coordinates_file_nam) do file
+        readlines(file)
+    end
+
+    nb_points =  length(data_coord)-1
+
+    localisations = []
+    for i in 1:nb_points
+        points = split(data_coord[1+i], ";")
+        latitude = parse(Float64, points[2])
+        longitude = parse(Float64, points[3])
+        bus_stop = Bus_stop(id=i, latitude=latitude, longitude=longitude)
+        push!(localisations, bus_stop)
+    end
+    return localisations
 end
