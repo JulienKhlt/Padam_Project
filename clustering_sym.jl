@@ -155,7 +155,7 @@ function remove!(a, item)
     deleteat!(a, findall(x->x==item, a))
 end
 
-function cluster_by_zones(warehouses, rep_warehouses, stops)
+function cluster_by_warehouse(warehouses, rep_warehouses, stops)
     # warehouses is a list that gives the id of the warehouses
     # rep_warehouses is a list that gives the repartition of the buses in the warehouses,
     # i.e the number of buses per warehouse
@@ -189,4 +189,7 @@ function cluster_by_zones(warehouses, rep_warehouses, stops)
         push!(all_clusters, current_cluster)
     end
     return all_clusters
+end
+
+function clusters_by_zones()
 end

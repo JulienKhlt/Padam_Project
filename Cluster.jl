@@ -47,8 +47,14 @@ function dist(point, map, Cluster)
     return minimum([map[point, i] for i in Cluster.points])
 end
 
-function closest(point, Solution)
-    return argmin([dist(point, Solution.map, i) for i in Solution.clusters])
+function closest(point, Solution, list=false)
+    # if list==true, return the closest cluster to point
+    # if list==false, return a list of the order of clusters for the point
+    if list
+        return sortperm([dist(point, Solution.map, i) for i in Solution.clusters])
+    else
+        return argmin([dist(point, Solution.map, i) for i in Solution.clusters])
+    end
 end
 
 function closest_convex(point, Solution)
