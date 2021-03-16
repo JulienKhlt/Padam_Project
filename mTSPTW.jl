@@ -58,12 +58,12 @@ function resolution_mtsptw(nb_people, nb_bus, people, map, id_dep, verbose = fal
     @constraint(model, [i in 1:nb_people], T[i] >= a[i])
     @constraint(model, [i in 1:nb_people], T[i] <= b[i])
     
-    @constraint(model, [i in 2:nb_people], sum(x[i, j] for j in 1:nb_people) == 1)
-    @constraint(model, [j in 2:nb_people], sum(x[i, j] for i in 1:(nb_people+1)) == 1)
+    @constraint(model, [i in 1:nb_people-1], sum(x[i, j] for j in 1:nb_people) == 1)
+    @constraint(model, [j in 1:nb_people-1], sum(x[i, j] for i in 1:(nb_people+1)) == 1)
     
-    @constraint(model, sum(x[i, 1] for i in 1:nb_people+1) == nb_bus)
+    @constraint(model, sum(x[i, nb_people] for i in 1:nb_people+1) == nb_bus)
     @constraint(model, [i in id_dep], x[nb_people+1, i] == 1)
-    @constraint(model, sum(x[nb_people+1, i] for i in 1:nb_people) == nb_bus)
+    # @constraint(model, sum(x[nb_people+1, i] for i in 1:nb_people) == nb_bus)
 
     Parties = parties(nb_people)
     @constraint(model, [party in Parties], sum(x[i, j] for i in party, j in party) <= length(party)-1)
@@ -94,7 +94,7 @@ function creation_bus(people, nb_people, x, T)
             push!(stops, people[pos].start_point)
             push!(bus_people, people[pos])
             push!(time, value(T[pos]))
-            while pos != 1
+            while pos != nb_people
                 for j in 1:nb_people
                     if value(x[pos, j]) == 1
                         pos = j

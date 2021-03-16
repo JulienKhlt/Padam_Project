@@ -14,8 +14,8 @@ function creation_data(file_name::String, nb_people, train_departure, depots)
             start_time = 0 
             end_time = train_departure
             write(file, string(index, " ", start_time, " ", end_time, "\n"))
-
+        end
     end
 end
 
-creation_data("Data/people_small.csv", 5, 1000)
+creation_data("Data/people_small.csv", 5, 1000, 1)

@@ -1,7 +1,9 @@
 include("TSPTW.jl")
 
-struct Cluster
+mutable struct Cluster
     points::Vector{Int}
+    gare
+    depot
     len
 end
 
@@ -10,6 +12,7 @@ function Base.show(io::IO, cluster::Cluster)
     for i in 1:length(cluster.points)
         str *= "       $(cluster.points[i])\n"
     end
+    str *= "Depot : $(cluster.depot.start_point)"
     print(io, str)
 end
 
@@ -17,6 +20,7 @@ struct Solution
     clusters::Vector{Cluster}
     length_max
     map
+    all_people
 end
 
 function Base.show(io::IO, solution::Solution)
@@ -59,7 +63,7 @@ function closest(point, Solution, list=false)
 end
 
 function nbre_people(point, people)
-    return [people[i] for i in 1:length(people) if people[i].first_point == point]
+    return [people[i] for i in 1:length(people) if people[i].start_point == point]
 end
 
 function closest_convex(point, Solution)
@@ -67,16 +71,18 @@ end
 
 function creation_bus(cluster, id, map, all_people)
     people = find_people(cluster, all_people)
+    people = new_people_cluster(people, cluster.gare, cluster.depot)
     stops, time = order_point(resolution_tsptw(length(people), people, map, 10000), people)
     return Bus(id=id, people=people, stops=stops, time=time)
 end
 
-function compute_solution(solution, all_people)
-    return [creation_bus(solution.clusters[i], i, solution.map, all_people) for i in 1:length(solution.clusters)]
+function compute_solution(solution)
+    return [creation_bus(solution.clusters[i], i, solution.map, solution.all_people) for i in 1:length(solution.clusters)]
 end
 
 function check_cluster(cluster, map, all_people)
     people = find_people(cluster, all_people)
+    people = new_people_cluster(people, cluster.gare, cluster.depot)
     try
         resolution_tsptw(length(people), people, map, 10000)
         return true
@@ -85,12 +91,19 @@ function check_cluster(cluster, map, all_people)
     end
 end
 
-function add_point!(point, sol::Solution, nb_point)
+function add_point!(point, sol::Solution)
     cluster = sol.clusters[closest(point, sol)]
+    nb_point = length(nbre_people(point, sol.all_people))
     if cluster.len <= sol.length_max - nb_point
         add_point!(point, cluster)
-        cluster.len += nb_point-
+        cluster.len += nb_point
     else
         println("Impossible")
+    end
+end
+
+function update!(cluster, people)
+    for i in cluster.points
+        cluster.len += length(nbre_people(i, people))
     end
 end

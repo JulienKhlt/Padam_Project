@@ -9,40 +9,41 @@ include("Parsers.jl")
 
 struct TimeTable
     people::Vector{Person}
+    gare
+    depots
     map
     id_dep
 
-    TimeTable(; people, map, id_dep) = new(people, map, id_dep)
+    TimeTable(; people, map, gare, depots, id_dep) = new(people, map, gare, depots, id_dep)
 end
 
 
 function resolution(timetable)
+    people = new_people(timetable.people, timetable.gare, timetable.depots)
     resolution_tsptw(length(timetable.people), timetable.people, timetable.map, 10000)
 end
 
 function resolution_mbus(timetable, nb_bus, verbose = false)
-    x, T = resolution_mtsptw(length(timetable.people), nb_bus, timetable.people, timetable.map, timetable.id_dep, verbose)
-    return creation_bus(timetable.people, length(timetable.people), x, T)
+    people = new_people(timetable.people, timetable.gare, timetable.depots)
+    x, T = resolution_mtsptw(length(people), nb_bus, people, timetable.map, timetable.id_dep, verbose)
+    return creation_bus(people, length(people), x, T)
 end
 
-# people = build_people("Data/people_huge.csv")
-# map = parser("Data/huge.csv")
-# timetable = TimeTable(people = people, map = map)
-# for i in 1:1
-#     resolution(timetable)
-# end
 
-people = build_people("Data/people_small.csv")
+people, gare, depots = build_people("Data/people_small.csv")
 map = parser("Data/small.csv")
+people = new_people(people, gare, depots)
 # map = parser_real_file("Data/mTSP_matrix.csv")
 # people = build_people_real_file("Data/customer_requests.csv", "Data/driver_shifts.csv", "Data/mTSP_matrix.csv", "Data/gammas.csv")
-print(people)
-# timetable = TimeTable(people = people, map = map)
-x, T = resolution_mtsptw(length(people), 2, people, map, [2])
+println(people)
+
+
+x, T = resolution_mtsptw(length(people), 1, people, map, [6])
 buses = creation_bus(people, length(people), x, T)
 println(buses)
 println(get_total_time(buses[1]))
-println(get_total_time(buses[2]))
+println(compute_total_time(buses[1], map))
+# println(get_total_time(buses[2]))
 
 # resolution(timetable)
 # resolution_mbus(timetable, 1, true)

@@ -2,7 +2,6 @@ using SparseArrays
 using LightGraphs
 
 include("Person.jl")
-include("Localisations")
 
 function parser(file_name)
     data = open(file_name) do file
