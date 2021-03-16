@@ -2,7 +2,7 @@ using SparseArrays
 using LightGraphs
 
 include("Person.jl")
-include("Localisations")
+include("Localisations.jl")
 
 function parser(file_name)
     data = open(file_name) do file

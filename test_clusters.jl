@@ -7,6 +7,16 @@ include("Bus.jl")
 # include("mTSPTW.jl")
 include("Parsers.jl")
 include("Cluster.jl")
+include("Resolution.jl")
+
+mappy = parser("Data/large.csv")
+people = build_people("Data/people_large.csv")
+
+len = 10
+train_index = 1
+
+sol = k_means(people, len, mappy, train_index)
+println(sol)
 
 map = parser("Data/small.csv")
 people = build_people("Data/people_small.csv")

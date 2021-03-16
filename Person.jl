@@ -1,4 +1,4 @@
-struct Person 
+struct Person
     start_point::Int
     start_time::Float64
     end_time::Float64
@@ -59,3 +59,4 @@ function new_people(people, gare, depot)
     push!(new_people, gare)
     append!(new_people, depot)
     return new_people
+end
