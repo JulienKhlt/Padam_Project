@@ -26,7 +26,7 @@ end
 function resolution_mbus(timetable, nb_bus, verbose = false)
     people = new_people(timetable.people, timetable.gare, timetable.depots)
     x, T = resolution_mtsptw(length(people), nb_bus, people, timetable.map, timetable.id_dep, verbose)
-    return creation_bus(people, length(people), x, T)
+    return creation_bus_exa(people, length(people), x, T)
 end
 
 

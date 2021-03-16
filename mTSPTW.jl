@@ -82,7 +82,7 @@ function resolution_mtsptw(nb_people, nb_bus, people, map, id_dep, verbose = fal
 end
 
 
-function creation_bus(people, nb_people, x, T)
+function creation_bus_exa(people, nb_people, x, T)
     Buses =[]
     id = 1
     for i in 1:nb_people
