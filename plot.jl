@@ -26,3 +26,22 @@ function plot_clusters(solution::Solution, localisations::Vector{Bus_stop})::Plo
     plot!(title = "Carte des clusters")
     return pl
 end
+
+"Affiche le graphique des arrets de bus"
+function plot_bus_stops(localisations::Vector{Bus_stop})::Plots.Plot
+    pl = plot()
+    latitude_list = []
+    longitude_list = []
+    for i in 1:length(localisations)
+        bus_stop = localisations[i]
+        push!(latitude_list, bus_stop.latitude)
+        push!(longitude_list, bus_stop.longitude)
+    end
+    scatter!(
+        pl, latitude_list, longitude_list,
+        marker = (:circle, 3, 0.7, "black"),
+        label = "arrets de bus",
+    )
+    plot!(title = "Carte des arrets de bus")
+    return pl
+end

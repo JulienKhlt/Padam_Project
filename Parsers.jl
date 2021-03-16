@@ -145,13 +145,13 @@ end
 
 
 function build_localisations(node_coordinates_file_name)
-    data_coord = open(node_coordinates_file_nam) do file
+    data_coord = open(node_coordinates_file_name) do file
         readlines(file)
     end
 
     nb_points =  length(data_coord)-1
 
-    localisations = []
+    localisations = Bus_stop[]
     for i in 1:nb_points
         points = split(data_coord[1+i], ";")
         latitude = parse(Float64, points[2])
