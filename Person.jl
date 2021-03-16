@@ -1,4 +1,4 @@
-struct Person 
+struct Person
     start_point::Int
     start_time::Float64
     end_time::Float64
