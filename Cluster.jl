@@ -32,8 +32,9 @@ function Base.show(io::IO, solution::Solution)
     print(io, str)
 end
 
-function add_point!(point, cluster::Cluster)
+function add_point!(point, cluster::Cluster, nb_point)
     push!(cluster.points, point)
+    cluster.len += nb_point
 end
 
 function remove_point!(id_point, cluster::Cluster)
@@ -48,17 +49,35 @@ function remove_cluster!(id_cluster, solution)
     deleteat!(solution.clusters, id_cluster)
 end
 
-function dist(point, map, Cluster)
+function dist_clo(point, map, Cluster)
     return minimum([map[point, i] for i in Cluster.points])
+end
+
+function dist_mean(point, map, Cluster)
+    return 0
+end
+
+function closest_pers(point, map, people)
+    return people[argmin([map[point, i.start_point] for i in people])]
 end
 
 function closest(point, Solution, list=false)
     # if list==true, return the closest cluster to point
     # if list==false, return a list of the order of clusters for the point
     if list
-        return sortperm([dist(point, Solution.map, i) for i in Solution.clusters])
+        return sortperm([dist_clo(point, Solution.map, i) for i in Solution.clusters])
     else
-        return argmin([dist(point, Solution.map, i) for i in Solution.clusters])
+        return argmin([dist_clo(point, Solution.map, i) for i in Solution.clusters])
+    end
+end
+
+function closest_mean(point, Solution, list=false)
+    # if list==true, return the closest cluster to point
+    # if list==false, return a list of the order of clusters for the point
+    if list
+        return sortperm([dist_mean(point, Solution.map, i) for i in Solution.clusters])
+    else
+        return argmin([dist_mean(point, Solution.map, i) for i in Solution.clusters])
     end
 end
 
@@ -95,8 +114,7 @@ function add_point!(point, sol::Solution)
     cluster = sol.clusters[closest(point, sol)]
     nb_point = length(nbre_people(point, sol.all_people))
     if cluster.len <= sol.length_max - nb_point
-        add_point!(point, cluster)
-        cluster.len += nb_point
+        add_point!(point, cluster, nb_point)
     else
         println("Impossible")
     end
@@ -106,4 +124,20 @@ function update!(cluster, people)
     for i in cluster.points
         cluster.len += length(nbre_people(i, people))
     end
+end
+
+function get_points(clusters)
+    points = []
+    for c in clusters
+        append!(points, c.points)
+    end
+    return fastuniq(points)
+end
+
+function already_in(person, clusters)
+    return person.start_point in get_points(clusters)
+end
+
+function points_left(all_people)
+    return fastuniq([p.start_point for p in all_people])
 end

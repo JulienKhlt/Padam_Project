@@ -67,3 +67,7 @@ function new_people_cluster(people, gare, depot)
     push!(new_people, gare)
     return new_people
 end
+
+function remove_people(people, point)
+    return [i for i in people if i.start_point != point]
+end
