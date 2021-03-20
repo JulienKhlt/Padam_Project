@@ -71,6 +71,8 @@ function closest(point, Solution, list=false)
     end
 end
 
+
+
 function closest_mean(point, Solution, list=false)
     # if list==true, return the closest cluster to point
     # if list==false, return a list of the order of clusters for the point
@@ -99,12 +101,12 @@ function compute_solution(solution)
     return [creation_bus(solution.clusters[i], i, solution.map, solution.all_people) for i in 1:length(solution.clusters)]
 end
 
-function check_cluster(cluster, map, all_people)
+function check_cluster(cluster, map, all_people, length_max)
     people = find_people(cluster, all_people)
     people = new_people_cluster(people, cluster.gare, cluster.depot)
     try
         resolution_tsptw(length(people), people, map, 10000)
-        return true
+        return length(cluster.points <= length_max)
     catch
         return false
     end

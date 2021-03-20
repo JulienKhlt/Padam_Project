@@ -9,7 +9,10 @@ include("Parsers.jl")
 include("Cluster.jl")
 include("Resolution.jl")
 
-map = parser("Data/medium.csv")
+mappy = parser("Data/medium.csv")
 people, gare, depots = build_people("Data/people.csv")
-sol = creation_cluster(people, gare, depots, map, 20)
+sol = creation_cluster(people, gare, depots, mappy, 20)
+println(sol)
+
+sol = hierarchical_clustering(people, mappy, gare, depots, 20)
 println(sol)
