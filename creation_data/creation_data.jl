@@ -20,4 +20,4 @@ function creation_data(file_name::String, nb_point)
     end
 end
 
-creation_data("Data/huge.csv", 1000)
+creation_data("Data/medium2.csv", 13)

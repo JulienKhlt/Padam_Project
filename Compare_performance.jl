@@ -32,4 +32,4 @@ function compare_performance(file_people, file_map, length_max, exact = false)
     end
 end
 
-compare_performance("Data/people.csv", "Data/medium.csv", 20)
+compare_performance("Data/people.csv", "Data/medium2.csv", 20)
