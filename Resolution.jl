@@ -30,9 +30,15 @@ function remove!(a, item)
    deleteat!(a, findall(x->x==item, a))
 end
 
-function get_nearby_solutions(solution)
-   # solution is a list of clusters
-   new_sol = [] # a list of lists of other solutions
+function get_nearby_solutions(solution, map, people, length_max)
+   """
+   INPUT : solution = ensemble (liste) de clusters qui fonctionne
+            map
+            people
+            length_max
+   OUTPUT : new_sol = liste contenant toutes les solutions (listes de clusters) voisines de l'input
+   """
+   new_sol = [] 
    for i in 1:length(solution)
       current_cluster = solution[i]
       frontier_stops = []
@@ -54,29 +60,41 @@ function get_nearby_solutions(solution)
             j = closest(p, solution)
             push!(nearby_sol[j], p)
          end
-         remove!(nearby_sol[i], p)
-         push!(new_sol, nearby_sol)
+         if check_cluster(nearby_sol[j], map, people, length_max)
+            pop!(nearby_sol)
+         else
+            remove!(nearby_sol[i], p)
+            push!(new_sol, nearby_sol)
+         end
       end
 
    end
    return new_sol
 end
 
-function metaheuristique_tabou(s0)
+function metaheuristique_tabou(s0, map, people, length_max)
+   """
+   INPUT : s0 = ensemble (liste) de clusters qui fonctionne
+           map
+           people
+           length_max
+   OUTPUT : sBest = autre ensemble de clusters meilleur (ou égal) au premier
+   ATTENTION : utilise une fonction result qui n'est pas définie
+   """
    sBest = s0
    bestCandidate = s0
    tabuList = []
    push!(tabuList, s0)
    k=0
    while (k<100)
-      sNeighborhood = get_nearby_solutions(bestCandidate)
+      sNeighborhood = get_nearby_solutions(bestCandidate, map, people, length_max)
       bestCandidate = sNeighborhood[0]
       for sCandidate in sNeighborhood
-         if !(sCandidate in tabuList) && fitness(sCandidate) > fitness(bestCandidate)
+         if !(sCandidate in tabuList) && result(sCandidate) > result(bestCandidate)
                bestCandidate = sCandidate
          end
       end
-      if fitness(bestCandidate) > fitness(sBest)
+      if result(bestCandidate) > result(sBest)
          sBest = bestCandidate
       end
       push!(tabuList, bestCandidate)
