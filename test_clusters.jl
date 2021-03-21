@@ -20,10 +20,10 @@ include("Cluster.jl")
 map = parser("Data/small.csv")
 people, gare, depots = build_people("Data/people_small.csv")
 people = new_people(people, gare, depots)
-
+length_max = 20
 cluster = Cluster([5], gare, depots[1], 0)
 cluster2 = Cluster([3], gare, depots[1], 0)
-println(check_cluster(cluster, map, people))
+println(check_cluster(cluster, map, people, length_max))
 sol = Solution([cluster, cluster2], 3, map, people)
 add_point!(4, sol)
 

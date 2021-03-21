@@ -6,6 +6,7 @@ struct Person
     Person(; start_point, start_time, end_time) = new(start_point, start_time, end_time)
 end
 
+
 function add_person(start_point, start_time, end_time, people)
     push!(people, Person(start_point = start_point, start_time = start_time, end_time = end_time))
     return people
