@@ -57,6 +57,13 @@ end
 
 
 function close_mean_arg(i, means, map, index_people)
+   """
+   INPUT : i = indice du client
+           means = tableau des moyennes sur chaque cluster
+           map
+           index_people = tableau des start_point de tous les clients
+   OUTPUT : j = indice du cluster dont la moyenne est la plus proche du client i
+   """
    j = 1
    mini = 100000
    for k in 1:length(means)
@@ -69,6 +76,10 @@ function close_mean_arg(i, means, map, index_people)
 end
 
 function different_sol(sol1,sol2)
+   """
+   INPUT : sol1, sol2 = Solutions
+   OUTPUT : true ssi les clusters sont les mêmes
+   """
    i = 1
    j = 1
    boo = length(sol1.clusters) == length(sol2.clusters)
@@ -85,16 +96,36 @@ function different_sol(sol1,sol2)
 end
 
 function dist_cluster_depot(map, list, depot)
-   return minimum([map[depot, i] for i in list])
+   """
+   INPUT : map
+           list = vecteur des start_point des clients appartenant à un même cluster
+           depot = un dépôt donné (type Person)
+   OUTPUT : distance minimale entre le dépôt et le cluster (minimum des distances avec tous les points du cluster)
+   """
+   return minimum([map[depot.start_point, i] for i in list])
 end
 
 function closest_depot(map, list, depots)
-    index = argmin([dist_cluster_depot(map,list,k.start_point) for k in depots])
+   """
+   INPUT : map
+           list = vecteur des start_point des clients appartenant à un même cluster
+           depots = vecteur avec tous les depots (type Person)
+   OUTPUT : dépôt le plus proche du cluster (type Person)
+   """
+    index = argmin([dist_cluster_depot(map,list,k) for k in depots])
     return depots[index]
 end
 
 
 function k_means(people, len, map, train_index, depots)
+   """
+   INPUT : people = clients (type Person)
+           map
+           gare = gare (type Person)
+           depots = vector de dépôts (type Person)
+           len = capacité maximale d'un bus
+   OUTPUT : calcul d'une Solution (ATTENTION : non admissible...)par k_means
+   """
    all_people = people[:]
    sol = Solution([],len,map, all_people)
    means = []
@@ -129,22 +160,40 @@ function k_means(people, len, map, train_index, depots)
 end
 
 function ward_dist(S1,S2, map, train_index)
-   n1 = length(S1)
-   n2 = length(S2)
-   mean_S1 =  1/n1*sum(map[train_index, i] for i in S1)
-   mean_S2 =  1/n2*sum(map[train_index, i] for i in S2)
-   closest_to_mean1 = argmin([abs(map[train_index,S1[i]] - mean_S1) for i in length(S1)])
-   closest_to_mean2 = argmin([abs(map[train_index,S2[i]] - mean_S2) for i in length(S2)])
-   return n1*n2/(n1+n2)*map[S1[closest_to_mean1], S2[closest_to_mean2]]
+   """
+   INPUT : S1, S2 = Clusters
+           map
+           train_index = start_point de la gare
+   OUTPUT : Approximation de la distance de ward entre les clusters S1 et S2 (pas distance exacte : la moyenne n'appartient pas au maillage)
+   """
+   S1_points = S1.points
+   S2_points = S2.points
+   n1 = length(S1_points)
+   n2 = length(S2_points)
+   mean_S1 =  1/n1*sum(map[train_index, i] for i in S1_points)
+   mean_S2 =  1/n2*sum(map[train_index, i] for i in S2_points)
+   closest_to_mean1 = argmin([abs(map[train_index,S1_points[i]] - mean_S1) for i in 1:n1])
+   closest_to_mean2 = argmin([abs(map[train_index,S2_points[i]] - mean_S2) for i in 1:n2])
+   return n1*n2/(n1+n2)*map[S1_points[closest_to_mean1], S2_points[closest_to_mean2]]
 end
 
-function min_ward_dist(s_list, map, train_index)
-   n = length(s_list)
-   L = [[ward_dist(s_list[convert(Int, k%n)+1].points, s_list[convert(Int, floor(k/n))+1].points, map, train_index), convert(Int, k%n)+1, convert(Int, floor(k/n))+1] for k in 1:n*n-1 if convert(Int, k%n)<convert(Int,floor(k/n))]
+function min_ward_dist(sol)
+   """
+   INPUT : sol = Solution
+   OUTPUT : liste triée par ordre croissant des distances de Ward entre tous les couples i,j de clusters différents
+   """
+   n = length(sol.clusters)
+   L = [[ward_dist(sol.clusters[convert(Int, k%n)+1], sol.clusters[convert(Int, floor(k/n))+1], sol.map, sol.gare.start_point), convert(Int, k%n)+1, convert(Int, floor(k/n))+1] for k in 1:n*n-1 if convert(Int, k%n)<convert(Int,floor(k/n))]
    sort!(L, by=x->x[1])
 end
 
 function concat(c1, c2, map, depots)
+   """
+   INPUT : c1, c2 = Clusters
+           map
+           depots = vecteur des dépôts (type Person)
+   OUTPUT : Cluster où on a fusionné les clusters c1 et c2
+   """
    list = []
    for i in c1.points
       push!(list, i)
@@ -156,26 +205,39 @@ function concat(c1, c2, map, depots)
 end
 
 function hierarchical_clustering(people, map, gare, depots, length_max)
+   """
+   INPUT : people = clients (type Person)
+           map
+           gare = gare (type Person)
+           depots = vector de dépôts (type Person)
+           length_max = capacité maximale d'un bus
+   OUTPUT : calcul d'une Solution par clustering hierarchique (fusion de clusters avec distance de ward)
+   """
    train_index = gare.start_point
    all_people = people[:]
+   #on part d'une solution de départ où le cluster i est composé du seul client i
    sol = Solution([],length_max,map, all_people)
    for k in 1:length(people)
       list = [people[k].start_point]
       cluster = Cluster(list, gare, closest_depot(map,list, depots), 1)
       add_cluster!(cluster, sol)
    end
+
    boo = true
-   while boo
+   while boo #tant qu'on peut fusionner des clusters de façon à ce qu'ils restent admissibles pour le TSPTW
       i = 1
       admissible = false
+      ward_distances = min_ward_dist(sol)
       while !admissible && i <= floor(length(sol.clusters)*(length(sol.clusters)-1)/2)
-         i_min= convert(Int, min_ward_dist(sol.clusters, map, train_index)[i][2])
-         j_min=  convert(Int, min_ward_dist(sol.clusters, map, train_index)[i][3])
+         #on prend la première paire de clusters telle que leur fusion reste admissible (minimisation de la distance de ward)
+         i_min= convert(Int, ward_distances[i][2])
+         j_min=  convert(Int,ward_distances[i][3])
          aggregate = concat(sol.clusters[i_min], sol.clusters[j_min], map, depots)
          admissible = check_cluster(aggregate, map, all_people, length_max)
          i+=1
       end
       if admissible
+         #dans ce cas, on fusionne les clusters
          remove_cluster!(i_min, sol)
          remove_cluster!(j_min, sol)
          add_cluster(aggregate,sol)
