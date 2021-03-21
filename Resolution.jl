@@ -26,33 +26,65 @@ function creation_cluster(people, map)
 
 end
 
-function nearby_solutions(solution)
+function remove!(a, item)
+   deleteat!(a, findall(x->x==item, a))
+end
+
+function get_nearby_solutions(solution)
    # solution is a list of clusters
+   new_sol = [] # a list of lists of other solutions
    for i in 1:length(solution)
       current_cluster = solution[i]
       frontier_stops = []
-      nearby_clusters = []
       center_stop = argmin([1/length(current_cluster) * sum([map[m, n] for m in 1:length(current_cluster)]) for n in 1:length(current_cluster)])
       furthest_stop = argmax([map[k, center_stop] for k in 1:length(current_cluster)])
       dist_center = 7/10*map[furthest_stop, center_stop]
-      for j in 1:length(current_cluster)
+      for j in current_cluster
          if map[j, center_stop] > dist_center
             push!(frontier_stops, j)
          end
-         if closest(j, solution)==i
-            if !(closest(j, solution, list=true)[2] in nearby_clusters)
-               push!(nearby_clusters, closest(j, solution, list=true)[2])
-            end
-         else
-            if !(closest(j, solution) in nearby_clusters)
-               push!(nearby_clusters, closest(j, solution))
-            end
-         end
       end
+
+      for p in frontier_stops
+         nearby_sol = copy(solution)
+         if closest(p, solution)==i
+            j = closest(p, solution, list=true)[2]
+            push!(nearby_sol[j], p)
+         else
+            j = closest(p, solution)
+            push!(nearby_sol[j], p)
+         end
+         remove!(nearby_sol[i], p)
+         push!(new_sol, nearby_sol)
+      end
+
    end
+   return new_sol
 end
 
-function metaheuristique_tabou(solution)
+function metaheuristique_tabou(s0)
+   sBest = s0
+   bestCandidate = s0
+   tabuList = []
+   push!(tabuList, s0)
+   k=0
+   while (k<100)
+      sNeighborhood = get_nearby_solutions(bestCandidate)
+      bestCandidate = sNeighborhood[0]
+      for sCandidate in sNeighborhood
+         if !(sCandidate in tabuList) && fitness(sCandidate) > fitness(bestCandidate)
+               bestCandidate = sCandidate
+         end
+      end
+      if fitness(bestCandidate) > fitness(sBest)
+         sBest = bestCandidate
+      end
+      push!(tabuList, bestCandidate)
+      if (lenght(tabuList) > maxTabuSize)
+         deleteat!(tabuList, 1)
+      end
+   end
+   return sBest
 end
 
 
