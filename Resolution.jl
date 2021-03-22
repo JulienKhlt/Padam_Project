@@ -38,7 +38,7 @@ function get_nearby_solutions(solution, map, people, length_max)
             length_max
    OUTPUT : new_sol = liste contenant toutes les solutions (listes de clusters) voisines de l'input
    """
-   new_sol = [] 
+   new_sol = []
    for i in 1:length(solution)
       current_cluster = solution[i]
       frontier_stops = []
@@ -227,13 +227,13 @@ function ward_dist(S1,S2, map, train_index)
    return n1*n2/(n1+n2)*map[S1_points[closest_to_mean1], S2_points[closest_to_mean2]]
 end
 
-function min_ward_dist(sol)
+function min_ward_dist(sol, gare)
    """
    INPUT : sol = Solution
    OUTPUT : liste triée par ordre croissant des distances de Ward entre tous les couples i,j de clusters différents
    """
    n = length(sol.clusters)
-   L = [[ward_dist(sol.clusters[convert(Int, k%n)+1], sol.clusters[convert(Int, floor(k/n))+1], sol.map, sol.gare.start_point), convert(Int, k%n)+1, convert(Int, floor(k/n))+1] for k in 1:n*n-1 if convert(Int, k%n)<convert(Int,floor(k/n))]
+   L = [[ward_dist(sol.clusters[convert(Int, k%n)+1], sol.clusters[convert(Int, floor(k/n))+1], sol.map, gare.start_point), convert(Int, k%n)+1, convert(Int, floor(k/n))+1] for k in 1:n*n-1 if convert(Int, k%n)<convert(Int,floor(k/n))]
    sort!(L, by=x->x[1])
 end
 
@@ -277,7 +277,7 @@ function hierarchical_clustering(people, map, gare, depots, length_max)
    while boo #tant qu'on peut fusionner des clusters de façon à ce qu'ils restent admissibles pour le TSPTW
       i = 1
       admissible = false
-      ward_distances = min_ward_dist(sol)
+      ward_distances = min_ward_dist(sol, gare)
       while !admissible && i <= floor(length(sol.clusters)*(length(sol.clusters)-1)/2)
          #on prend la première paire de clusters telle que leur fusion reste admissible (minimisation de la distance de ward)
          i_min= convert(Int, ward_distances[i][2])
