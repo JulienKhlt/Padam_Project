@@ -30,7 +30,7 @@ function parser_real_file(file_name)
             map[i, j] = parse(Float64, D[j])
         end
     end
-    return map,n
+    return map, n
 end
 
 function parser_real_file_symetry(file_name)
