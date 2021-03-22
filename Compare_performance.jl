@@ -18,18 +18,22 @@ function compare_performance(file_people, file_map, length_max, exact = false)
     people, gare, depots = build_people(file_people)
     sol = creation_cluster(people, gare, depots, map, length_max)
     buses_heuristics = compute_solution(sol)
-    
+    sol_2 = hierarchical_clustering(people, gare, depots, map, length_max)
+    buses_heuristics_2 = compute_solution(sol_2)
+
     people = new_people(people, gare, depots)
     x, T = resolution_mtsptw(length(people), length(depots), people, map, length(people)-length(depots):length(people)-1)
-    buses_exact = creation_bus_exa(people, length(people), x, T) 
+    buses_exact = creation_bus_exa(people, length(people), x, T)
 
     if exact
         print_performance(compute_total_time.(buses_heuristics, map))
+        print_performance(compute_total_time.(buses_heuristics_2, map))
         print_performance(compute_total_time.(buses_exact, map))
     else
         print_performance(get_total_time.(buses_heuristics))
+        print_performance(get_total_time.(buses_heuristics_2))
         print_performance(get_total_time.(buses_exact))
     end
 end
 
-compare_performance("Data/people.csv", "Data/medium2.csv", 20)
+compare_performance("Data/people.csv", "Data/medium.csv", 20)

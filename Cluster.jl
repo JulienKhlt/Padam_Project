@@ -106,7 +106,7 @@ function check_cluster(cluster, map, all_people, length_max)
     people = new_people_cluster(people, cluster.gare, cluster.depot)
     try
         resolution_tsptw(length(people), people, map, 10000)
-        return length(cluster.points <= length_max)
+        return length(cluster.points) <= length_max
     catch
         return false
     end

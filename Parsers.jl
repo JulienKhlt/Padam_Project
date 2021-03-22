@@ -2,6 +2,9 @@ using SparseArrays
 using LightGraphs
 
 include("Person.jl")
+include("Localisations.jl")
+include("Cluster.jl")
+include("plot.jl")
 
 function parser(file_name)
     data = open(file_name) do file
@@ -123,9 +126,15 @@ function build_people_real_file_only_client(client_file_name, driver_file_name, 
     else
         map = parser_real_file(map_file_name)[1]
     end
+    data_driver = open(driver_file_name) do file
+        readlines(file)
+    end
     data_client = open(client_file_name) do file
         readlines(file)
     end
+
+    train_index = parse(Int,split(data_driver[2], ";")[3])
+    train_departure = convert_time_str_int(split(data_driver[2], ";")[5])
 
     people = []
 
@@ -144,6 +153,11 @@ end
 
 
 function build_localisations(node_coordinates_file_name)
+    """
+    Input : le nom du fichier de coordonées
+    Récupère les coordonnées des arrets de bus
+    Output : un vecteur de Bus_stop
+    """
     data_coord = open(node_coordinates_file_name) do file
         readlines(file)
     end
