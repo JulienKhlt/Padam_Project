@@ -9,8 +9,8 @@ include("Parsers.jl")
 include("Cluster.jl")
 include("Resolution.jl")
 
-mappy = parser("Data/medium.csv")
-people, gare, depots = build_people("Data/people.csv")
+mappy = parser("Data/huge.csv")
+people, gare, depots = build_people("Data/people_huge.csv")
 sol = creation_cluster(people, gare, depots, mappy, 20)
 println(sol)
 

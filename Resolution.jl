@@ -284,14 +284,15 @@ function hierarchical_clustering(people, map, gare, depots, length_max)
          j_min=  convert(Int,ward_distances[i][3])
          aggregate = concat(sol.clusters[i_min], sol.clusters[j_min], map, depots)
          admissible = check_cluster(aggregate, map, all_people, length_max)
+         if admissible
+            #dans ce cas, on fusionne les clusters
+            remove_cluster!(max(i_min, j_min), sol)
+            remove_cluster!(min(i_min,j_min), sol)
+            add_cluster!(aggregate,sol)
+         end
          i+=1
       end
-      if admissible
-         #dans ce cas, on fusionne les clusters
-         remove_cluster!(i_min, sol)
-         remove_cluster!(j_min, sol)
-         add_cluster(aggregate,sol)
-      else
+      if !admissible
          boo = false
       end
    end
