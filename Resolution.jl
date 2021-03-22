@@ -30,23 +30,24 @@ function remove!(a, item)
    deleteat!(a, findall(x->x==item, a))
 end
 
-function get_nearby_solutions(solution, map, people, length_max)
+function get_nearby_solutions(solution)
    """
-   INPUT : solution = ensemble (liste) de clusters qui fonctionne
+   INPUT : solution = Solution de clusters qui fonctionne
             map
             people
             length_max
-   OUTPUT : new_sol = liste contenant toutes les solutions (listes de clusters) voisines de l'input
+   OUTPUT : new_sol = liste contenant toutes les solutions (de type Solution) voisines de l'input
    """
+   sol_clusters = copy(solution.clusters)
    new_sol = []
-   for i in 1:length(solution)
-      current_cluster = solution[i]
+   for i in 1:length(sol_clusters)
+      current_cluster = sol_clusters[i]
       frontier_stops = []
-      center_stop = argmin([1/length(current_cluster) * sum([map[m, n] for m in 1:length(current_cluster)]) for n in 1:length(current_cluster)])
-      furthest_stop = argmax([map[k, center_stop] for k in 1:length(current_cluster)])
-      dist_center = 7/10*map[furthest_stop, center_stop]
+      center_stop = argmin([1/length(current_cluster) * sum([solution.map[m, n] for m in 1:length(current_cluster)]) for n in 1:length(current_cluster)])
+      furthest_stop = argmax([solution.map[k, center_stop] for k in 1:length(current_cluster)])
+      dist_center = 7/10 * solution.map[furthest_stop, center_stop]
       for j in current_cluster
-         if map[j, center_stop] > dist_center
+         if solution.map[j, center_stop] > dist_center
             push!(frontier_stops, j)
          end
       end
@@ -54,17 +55,17 @@ function get_nearby_solutions(solution, map, people, length_max)
       for p in frontier_stops
          nearby_sol = copy(solution)
          if closest(p, solution)==i
-            j = closest(p, solution, list=true)[2]
+            j = closest(p, sol_clusters, list=true)[2]
             push!(nearby_sol[j], p)
          else
-            j = closest(p, solution)
+            j = closest(p, sol_clusters)
             push!(nearby_sol[j], p)
          end
-         if check_cluster(nearby_sol[j], map, people, length_max)
+         if check_cluster(nearby_sol[j], solution.map, solution.all_people, solution.length_max)
             pop!(nearby_sol)
          else
             remove!(nearby_sol[i], p)
-            push!(new_sol, nearby_sol)
+            push!(new_sol, Solution(nearby_sol, solution.length_max, solution.map, solution.all_people))
          end
       end
 
@@ -79,7 +80,6 @@ function metaheuristique_tabou(s0, map, people, length_max)
            people
            length_max
    OUTPUT : sBest = autre ensemble de clusters meilleur (ou égal) au premier
-   ATTENTION : utilise une fonction result qui n'est pas définie
    """
    sBest = s0
    bestCandidate = s0
@@ -90,11 +90,11 @@ function metaheuristique_tabou(s0, map, people, length_max)
       sNeighborhood = get_nearby_solutions(bestCandidate, map, people, length_max)
       bestCandidate = sNeighborhood[0]
       for sCandidate in sNeighborhood
-         if !(sCandidate in tabuList) && result(sCandidate) > result(bestCandidate)
+         if !(sCandidate in tabuList) && compute_solution(sCandidate) > compute_solution(bestCandidate)
                bestCandidate = sCandidate
          end
       end
-      if result(bestCandidate) > result(sBest)
+      if compute_solution(bestCandidate) > compute_solution(sBest)
          sBest = bestCandidate
       end
       push!(tabuList, bestCandidate)

@@ -156,11 +156,14 @@ function remove!(a, item)
 end
 
 function cluster_by_warehouse(warehouses, rep_warehouses, stops)
-    # warehouses is a list that gives the id of the warehouses
-    # rep_warehouses is a list that gives the repartition of the buses in the warehouses,
-    # i.e the number of buses per warehouse
-    # stops is a list that gives the id of the buses stops
-    # warning : this function returns as many clusters as warehouses, not buses !!
+    """
+    INPUTS : warehouses is a list that gives the id of the warehouses
+             rep_warehouses is a list that gives the repartition of the buses in the warehouses,
+                i.e the number of buses per warehouse
+            stops is a list that gives the id of the buses stops
+    OUTPUT : all_clusters : a list of clusters
+                warning : this function returns as many clusters as warehouses, not buses !!
+    """
     nb_warehouses = length(warehouses)
     nb_stops = length(stops)
     nb_buses = 0
