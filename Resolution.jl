@@ -4,7 +4,7 @@ function insertion_heuristic()
    solution = creation_cluster()
 end
 
-function creation_cluster(people, gare, depots, map, length_max)
+function creation_cluster(people, gare, depots, map, length_max, check = true)
    all_people = people[:]
    clusters = []
    for i in 1:length(depots)
@@ -17,13 +17,10 @@ function creation_cluster(people, gare, depots, map, length_max)
    sol = Solution(clusters, length_max, map, people)
 
    for p in points_left(all_people)
-      add_point!(p, sol.clusters[closest(p, sol)], length(nbre_people(p, all_people)))
+      size = length(nbre_people(p, all_people))
+      add_point!(p, sol.clusters[best_cluster(p, sol, size, check)], size)
    end
    return sol
-end
-
-function creation_cluster(people, map)
-
 end
 
 function remove!(a, item)

@@ -71,7 +71,23 @@ function closest(point, Solution, list=false)
     end
 end
 
-
+function best_cluster(point, sol, size, check = true)
+    id_clusters = closest(point, sol, true)
+    for c in id_clusters
+        if sol.clusters[c].len + size < sol.length_max
+            if check
+                cluster = Cluster(sol.clusters[c].points, sol.clusters[c].gare, sol.clusters[c].depot, sol.clusters[c].len)
+                add_point!(point, cluster, size)
+                if check_cluster(cluster, sol.map, sol.all_people, sol.length_max)
+                    return c
+                end
+            else
+                return c
+            end
+        end
+    end
+    throw(ErrorException("Tous les clusters sont pleins ou on ne peut insérer le point nul part"))
+end
 
 function closest_mean(point, Solution, list=false)
     # if list==true, return the closest cluster to point

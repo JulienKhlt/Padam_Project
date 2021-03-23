@@ -23,6 +23,8 @@ people = new_people(people, gare, depots)
 length_max = 20
 cluster = Cluster([5], gare, depots[1], 0)
 cluster2 = Cluster([3], gare, depots[1], 0)
+add_point!(4, cluster, 1)
+println(cluster)
 println(check_cluster(cluster, map, people, length_max))
 sol = Solution([cluster, cluster2], 3, map, people)
 add_point!(4, sol)

@@ -4,7 +4,7 @@ using LightGraphs
 include("Person.jl")
 include("Localisations.jl")
 include("Cluster.jl")
-include("plot.jl")
+# include("plot.jl")
 
 function parser(file_name)
     data = open(file_name) do file
