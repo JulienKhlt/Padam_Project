@@ -4,13 +4,17 @@ pyplot()
 
 "Ajoute un cluster à un graphique"
 function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop}, pl::Plots.Plot)
-    latitude_list = []
-    longitude_list = []
+    loc_depot = localisations[index_depot]
+    latitude_list = [loc_depot.latitude]
+    longitude_list = [loc_depot.longitude]
     for i in 1:length(cluster.points)
         bus_stop = localisations[i]
         push!(latitude_list, bus_stop.latitude)
         push!(longitude_list, bus_stop.longitude)
     end
+    loc_gare = loc[index_gare]
+    push!(latitude_list, loc_gare.latitude)
+    push!(longitude_list, loc_gare.longitude)
     plot!(
         pl, latitude_list, longitude_list,
         linewidth = 1
@@ -31,12 +35,12 @@ end
 """
 Inputs :
 - localisations un vecteur d'éléments de type Bus_stop qui contient les localisations de tous les arrets de bus
-- depots la liste des indices des dépots
+- drivers la liste des drivers (de type Person)
 - index_gare l'indice de la gare
 Affiche le graphique des arrets de bus, des dépots et de la gare
 Output : le graphe
 """
-function plot_bus_stops(localisations::Vector{Bus_stop}, depots, index_gare)::Plots.Plot
+function plot_bus_stops(localisations::Vector{Bus_stop}, drivers::Vector{Person}, index_gare)::Plots.Plot
     pl = plot()
 
     #On affiche les arrets de bus
@@ -56,8 +60,8 @@ function plot_bus_stops(localisations::Vector{Bus_stop}, depots, index_gare)::Pl
     #On affiche les dépots
     latitude_list = []
     longitude_list = []
-    for index_depot in depots
-        loc_depot = localisations[index_depot]
+    for driver in drivers
+        loc_depot = localisations[driver.start_point]
         push!(latitude_list, loc_depot.latitude)
         push!(longitude_list, loc_depot.longitude)
     end

@@ -178,22 +178,25 @@ end
 Input : driver_file_name qui est le nom du fichier des infos des conducteurs
 Récupère les indices des dépots et de la gare
 Outputs :
-- depots la liste des indices des dépots
-- index_gare l'indice de la gare
+- depots la liste des drivers (de type Person)
+- index_gare l'indice de la gare (de type int, à changer vers un type Person ?)
 """
-function build_depots_and_gare(driver_file_name)
+function build_drivers_and_gare(driver_file_name)
     data_driver = open(driver_file_name) do file
         readlines(file)
     end
 
     nb_drivers =  length(data_driver)-1
     index_gare = parse(Int,split(data_driver[2], ";")[3])
-    depots = Int[]
+    drivers = Person[]
 
     for i in 1:nb_drivers
-        index_depot = parse(Int,split(data_driver[1+i], ";")[2])
-        push!(depots, index_depot)
+        driver = split(data_driver[1+i], ";")
+        depot = parse(Int, driver[2])
+        start_time =  convert_time_str_int(driver[4])
+        end_time =  convert_time_str_int(driver[5])
+        add_person(depot, start_time, end_time, drivers)
     end
 
-    return depots, index_gare
+    return drivers, index_gare
 end
