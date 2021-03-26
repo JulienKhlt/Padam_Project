@@ -178,7 +178,7 @@ end
 Input : driver_file_name qui est le nom du fichier des infos des conducteurs
 Récupère les indices des dépots et de la gare
 Outputs :
-- depots la liste des drivers (de type Person)
+- drivers la liste des drivers (de type Person)
 - index_gare l'indice de la gare (de type int, à changer vers un type Person ?)
 """
 function build_drivers_and_gare(driver_file_name)

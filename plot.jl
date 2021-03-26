@@ -4,7 +4,7 @@ pyplot()
 
 "Ajoute un cluster à un graphique"
 function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop}, pl::Plots.Plot)
-    loc_depot = localisations[index_depot]
+    loc_depot = localisations[cluster.depot.start_point]
     latitude_list = [loc_depot.latitude]
     longitude_list = [loc_depot.longitude]
     for i in 1:length(cluster.points)
@@ -12,7 +12,7 @@ function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop},
         push!(latitude_list, bus_stop.latitude)
         push!(longitude_list, bus_stop.longitude)
     end
-    loc_gare = loc[index_gare]
+    loc_gare = loc[cluster.gare.start_point]
     push!(latitude_list, loc_gare.latitude)
     push!(longitude_list, loc_gare.longitude)
     plot!(
@@ -22,8 +22,8 @@ function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop},
 end
 
 "Affiche le graphique des clusters présents dans une solution"
-function plot_clusters(solution::Solution, localisations::Vector{Bus_stop})::Plots.Plot
-    pl = plot()
+function plot_clusters(solution::Solution, localisations::Vector{Bus_stop}, pl::Plots.Plot)::Plots.Plot
+    #pl = plot()
     for cluster in solution.clusters
         add_cluster_to_plot!(cluster, localisations, pl)
     end
