@@ -57,4 +57,4 @@ function compare_performance_2(file_people, file_map, length_max, exact = false)
     end
 end
 
-compare_performance_2("Data/people_large.csv", "Data/large .csv", 20)
+compare_performance_2("Data/people_large.csv", "Data/large.csv", 20)
