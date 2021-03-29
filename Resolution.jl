@@ -53,7 +53,7 @@ function get_nearby_solutions(solution)
       for p in frontier_stops
          nearby_sol = copy(sol_clusters) # liste de clusters de type Cluster
          if closest(p, solution)==i
-            j = closest(p, solution, list=true)[2]
+            j = closest(p, solution, true)[2]
             push!(nearby_sol[j].points, p)
          else
             j = closest(p, solution)
@@ -307,7 +307,7 @@ end
 
 function cluster_by_warehouse(warehouses, rep_warehouses, stops)
    """
-   INPUTS : warehouses is a list that gives the id of the warehouses
+   INPUTS : warehouses is a list of the warehouses
             rep_warehouses is a list that gives the repartition of the buses in the warehouses,
                i.e the number of buses per warehouse
            stops is a list that gives the id of the buses stops
@@ -335,7 +335,7 @@ function cluster_by_warehouse(warehouses, rep_warehouses, stops)
    for i in 1:nb_warehouses
        current_cluster = []
        while length(current_cluster) < nb_stops_per_warehouse[i]
-           nearest_stop = argmin([map[warehouses[i], j] for j in stops_left])
+           nearest_stop = argmin([map[warehouses[i].start_point, j] for j in stops_left])
            push!(current_cluster, stops_left[nearest_stop])
            remove!(stops_left, stops_left[nearest_stop])
        end
@@ -347,8 +347,23 @@ end
 function creation_clusters_by_zones(people, gare, depots, map, length_max)
    """
    INPUT / OUTPUT : cf fonction creation_cluster
+   warehouses is a list that gives the id of the warehouses
+   rep_warehouses is a list that gives the repartition of the buses in the warehouses,
+      i.e the number of buses per warehouse
    """
    # il faut définir rep_warehouses et warehouses selon comment est définit depots
+   warehouses=[]
+   rep_warehouses = []
+
+   for d in depots
+      if !(d in warehouses)
+         push!(warehouses, d)
+         push!(rep_warehouses, 1)
+      else
+         index = findall(x->x==d, warehouses)
+         rep_warehouses[index] += 1
+      end
+   end
    clusters_by_warehouses = cluster_by_warehouse(warehouses, rep_warehouses, people)
    clusters = []
    global_solution = Solution(clusters, length_max, map, people)
