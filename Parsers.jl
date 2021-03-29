@@ -137,7 +137,6 @@ function build_people_real_file_only_client(client_file_name, driver_file_name, 
     train_departure = convert_time_str_int(split(data_driver[2], ";")[5])
 
     people = []
-
     nb_client =  length(data_client)-1
 
     for i in 1:nb_client
@@ -151,20 +150,19 @@ function build_people_real_file_only_client(client_file_name, driver_file_name, 
     return people
 end
 
-
+"""
+Input : node_coordinates_file_name qui est le nom du fichier de coordonnées
+Récupère les coordonnées des arrets de bus
+Output : un vecteur de Bus_stop
+"""
 function build_localisations(node_coordinates_file_name)
-    """
-    Input : le nom du fichier de coordonées
-    Récupère les coordonnées des arrets de bus
-    Output : un vecteur de Bus_stop
-    """
     data_coord = open(node_coordinates_file_name) do file
         readlines(file)
     end
 
     nb_points =  length(data_coord)-1
-
     localisations = Bus_stop[]
+
     for i in 1:nb_points
         points = split(data_coord[1+i], ";")
         latitude = parse(Float64, points[2])
@@ -173,4 +171,32 @@ function build_localisations(node_coordinates_file_name)
         push!(localisations, bus_stop)
     end
     return localisations
+end
+
+
+"""
+Input : driver_file_name qui est le nom du fichier des infos des conducteurs
+Récupère les indices des dépots et de la gare
+Outputs :
+- drivers la liste des drivers (de type Person)
+- index_gare l'indice de la gare (de type int, à changer vers un type Person ?)
+"""
+function build_drivers_and_gare(driver_file_name)
+    data_driver = open(driver_file_name) do file
+        readlines(file)
+    end
+
+    nb_drivers =  length(data_driver)-1
+    index_gare = parse(Int,split(data_driver[2], ";")[3])
+    drivers = Person[]
+
+    for i in 1:nb_drivers
+        driver = split(data_driver[1+i], ";")
+        depot = parse(Int, driver[2])
+        start_time =  convert_time_str_int(driver[4])
+        end_time =  convert_time_str_int(driver[5])
+        add_person(depot, start_time, end_time, drivers)
+    end
+
+    return drivers, index_gare
 end
