@@ -57,6 +57,17 @@ function people_map(people, nb_people, map)
     return new_map
 end
 
+function restricted_map(map, points)
+    nb_points = length(points)
+    new_map = spzeros(nb_points, nb_points)
+    for i in 1:nb_points
+        for j in 1:nb_points
+            new_map[i, j] = map[points[i], points[j]]
+        end
+    end
+    return new_map
+end   
+
 function convert_time_str_int(time)
     #conversion from format h:m:s to seconds
     time_str = split(time, ":")
