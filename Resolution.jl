@@ -97,8 +97,10 @@ function metaheuristique_tabou(s0, maxIter, maxTabuSize)
       sNeighborhood = get_nearby_solutions(bestCandidate)
       bestCandidate = sNeighborhood[1]
       for sCandidate in sNeighborhood
-         if !(sCandidate in tabuList) && compute_solution(sCandidate) > compute_solution(bestCandidate)
+         if !(sCandidate in tabuList) 
+            if compute_solution(sCandidate) > compute_solution(bestCandidate) # pb de comparaison ici : c'est pas la bonne fonction
                bestCandidate = sCandidate
+            end
          end
       end
       if compute_solution(bestCandidate) > compute_solution(sBest)
