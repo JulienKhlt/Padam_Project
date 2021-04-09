@@ -41,8 +41,17 @@ function get_nearby_solutions(solution)
       current_cluster = sol_clusters[i]
       current_points = current_cluster.points
       frontier_stops = []
-      center_stop = argmin([1/length(current_points) * sum([solution.map[m, n] for m in 1:length(current_points)]) for n in 1:length(current_points)])
-      furthest_stop = argmax([solution.map[k, center_stop] for k in 1:length(current_points)])
+      list_dist = []
+      for m in current_points
+         sum_dist = 0
+         for n in current_points
+            sum_dist += solution.map[m, n]
+         end
+         push!(list_dist, 1/length(current_points) * sum_dist)
+      end
+      center_stop = argmin(list_dist)
+      #center_stop = argmin([1/length(current_points) * sum([solution.map[m, n] for m in 1:length(current_points)]) for n in 1:length(current_points)])
+      furthest_stop = argmax([solution.map[k, center_stop] for k in current_points])
       dist_center = 7/10 * solution.map[furthest_stop, center_stop]
       for j in current_points
          if solution.map[j, center_stop] > dist_center
@@ -52,8 +61,8 @@ function get_nearby_solutions(solution)
 
       for p in frontier_stops
          nearby_sol = copy(sol_clusters) # liste de clusters de type Cluster
-         if closest(p, solution)==i
-            j = closest(p, solution, true)[2]
+         if closest(p, solution)==i 
+            j = closest(p, solution, true)[2] # pb ici parce qu'il n'y a qu'un seul cluster dans solution...
             push!(nearby_sol[j].points, p)
          else
             j = closest(p, solution)

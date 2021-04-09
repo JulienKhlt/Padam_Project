@@ -62,10 +62,14 @@ function closest_pers(point, map, people)
 end
 
 function closest(point, Solution, list=false)
-    # if list==true, return the closest cluster to point
-    # if list==false, return a list of the order of clusters for the point
+    # if list==false, return the closest cluster to point
+    # if list==true, return a list of the order of clusters for the point
     if list
-        return sortperm([dist_clo(point, Solution.map, i) for i in Solution.clusters])
+        println("nb de clusters : ", length(Solution.clusters))
+        list = [dist_clo(point, Solution.map, i) for i in Solution.clusters]
+        println(length(list))
+        return sortperm(list)
+        #return sortperm([dist_clo(point, Solution.map, i) for i in Solution.clusters])
     else
         return argmin([dist_clo(point, Solution.map, i) for i in Solution.clusters])
     end
