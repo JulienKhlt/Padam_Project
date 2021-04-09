@@ -65,7 +65,6 @@ function closest(point, Solution, list=false)
     # if list==false, return the closest cluster to point
     # if list==true, return a list of the order of clusters for the point
     if list
-        println("nb de clusters : ", length(Solution.clusters))
         list = [dist_clo(point, Solution.map, i) for i in Solution.clusters]
         println(length(list))
         return sortperm(list)

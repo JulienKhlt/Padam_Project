@@ -37,20 +37,20 @@ function get_nearby_solutions(solution)
    """
    sol_clusters = copy(solution.clusters) # liste de clusters de type Cluster
    new_sol = [] # liste contenant des types Solution
-   for i in 1:length(sol_clusters)
+   for i in 1:length(sol_clusters) # pour chaque cluster de la solution
       current_cluster = sol_clusters[i]
       current_points = current_cluster.points
-      frontier_stops = []
-      list_dist = []
-      for m in current_points
-         sum_dist = 0
-         for n in current_points
-            sum_dist += solution.map[m, n]
-         end
-         push!(list_dist, 1/length(current_points) * sum_dist)
-      end
-      center_stop = argmin(list_dist)
-      #center_stop = argmin([1/length(current_points) * sum([solution.map[m, n] for m in 1:length(current_points)]) for n in 1:length(current_points)])
+      frontier_stops = [] # liste des points du cluster qui sont en gros à la frontière
+      # list_dist = []
+      # for m in current_points
+      #    sum_dist = 0
+      #    for n in current_points
+      #       sum_dist += solution.map[m, n]
+      #    end
+      #    push!(list_dist, 1/length(current_points) * sum_dist)
+      # end
+      # center_stop = argmin(list_dist)
+      center_stop = argmin([1/length(current_points) * sum([solution.map[m, n] for m in current_points]) for n in current_points])
       furthest_stop = argmax([solution.map[k, center_stop] for k in current_points])
       dist_center = 7/10 * solution.map[furthest_stop, center_stop]
       for j in current_points
@@ -69,7 +69,7 @@ function get_nearby_solutions(solution)
             push!(nearby_sol[j].points, p)
          end
          if !check_cluster(nearby_sol[j], solution.map, solution.all_people, solution.length_max)
-            pop!(nearby_sol.point) # on annule ce qu'on a fait
+            pop!(nearby_sol[j].points) # on annule ce qu'on a fait
          else
             remove!(nearby_sol[i].points, p)
             push!(new_sol, Solution(nearby_sol, solution.length_max, solution.map, solution.all_people))
@@ -95,7 +95,7 @@ function metaheuristique_tabou(s0, maxIter, maxTabuSize)
    k=0
    while (k<maxIter)
       sNeighborhood = get_nearby_solutions(bestCandidate)
-      bestCandidate = sNeighborhood[0]
+      bestCandidate = sNeighborhood[1]
       for sCandidate in sNeighborhood
          if !(sCandidate in tabuList) && compute_solution(sCandidate) > compute_solution(bestCandidate)
                bestCandidate = sCandidate
@@ -105,7 +105,7 @@ function metaheuristique_tabou(s0, maxIter, maxTabuSize)
          sBest = bestCandidate
       end
       push!(tabuList, bestCandidate)
-      if (lenght(tabuList) > maxTabuSize)
+      if (length(tabuList) > maxTabuSize)
          deleteat!(tabuList, 1)
       end
       k+=1
