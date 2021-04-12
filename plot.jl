@@ -8,7 +8,7 @@ function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop},
     latitude_list = [loc_depot.latitude]
     longitude_list = [loc_depot.longitude]
     for i in 1:length(cluster.points)
-        bus_stop = localisations[i]
+        bus_stop = localisations[cluster.points[i]]
         push!(latitude_list, bus_stop.latitude)
         push!(longitude_list, bus_stop.longitude)
     end
@@ -32,7 +32,7 @@ function scatter_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_st
     latitude_list = []
     longitude_list = []
     for i in 1:length(cluster.points)
-        bus_stop = localisations[i]
+        bus_stop = localisations[cluster.points[i]]
         push!(latitude_list, bus_stop.latitude)
         push!(longitude_list, bus_stop.longitude)
     end
@@ -43,7 +43,7 @@ function scatter_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_st
     end
     scatter!(
         pl, latitude_list, longitude_list,
-        markersize = 2,
+        markersize = 4,
         markeralpha = 1,
         markerstrokealpha = 0,
         label = label
