@@ -2,8 +2,8 @@ using Plots
 pyplot()
 
 
-"Ajoute un cluster à un graphique"
-function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop}, pl::Plots.Plot)
+"Ajoute un cluster à un graphique (points reliés par des lignes)"
+function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop}, pl::Plots.Plot, index::Int = 0)
     loc_depot = localisations[cluster.depot.start_point]
     latitude_list = [loc_depot.latitude]
     longitude_list = [loc_depot.longitude]
@@ -15,17 +15,50 @@ function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop},
     loc_gare = loc[cluster.gare.start_point]
     push!(latitude_list, loc_gare.latitude)
     push!(longitude_list, loc_gare.longitude)
+    if index == 0
+        label = "cluster"
+    else
+        label = "cluster n°" * string(index)
+    end
     plot!(
         pl, latitude_list, longitude_list,
-        linewidth = 1
+        linewidth = 1,
+        label = label
+    )
+end
+
+"Ajoute un cluster à un graphique"
+function scatter_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop}, pl::Plots.Plot, index::Int = 0)
+    latitude_list = []
+    longitude_list = []
+    for i in 1:length(cluster.points)
+        bus_stop = localisations[i]
+        push!(latitude_list, bus_stop.latitude)
+        push!(longitude_list, bus_stop.longitude)
+    end
+    if index == 0
+        label = "cluster"
+    else
+        label = "cluster n°" * string(index)
+    end
+    scatter!(
+        pl, latitude_list, longitude_list,
+        markersize = 2,
+        markeralpha = 1,
+        markerstrokealpha = 0,
+        label = label
     )
 end
 
 "Affiche le graphique des clusters présents dans une solution"
-function plot_clusters(solution::Solution, localisations::Vector{Bus_stop}, pl::Plots.Plot)::Plots.Plot
+function plot_clusters(solution::Solution, localisations::Vector{Bus_stop}, pl::Plots.Plot, scatter = false)::Plots.Plot
     #pl = plot()
-    for cluster in solution.clusters
-        add_cluster_to_plot!(cluster, localisations, pl)
+    for (index, cluster) in enumerate(solution.clusters)
+        if scatter
+            scatter_cluster_to_plot!(cluster, localisations, pl, index)
+        else
+            add_cluster_to_plot!(cluster, localisations, pl, index)
+        end
     end
     plot!(title = "Carte des clusters")
     return pl
