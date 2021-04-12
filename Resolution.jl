@@ -27,7 +27,7 @@ function remove!(a, item)
    deleteat!(a, findall(x->x==item, a))
 end
 
-function get_nearby_solutions(solution)
+function get_nearby_solutions(solution, marge_frontiere)
    """
    INPUT : solution = Solution de clusters qui fonctionne
             map
@@ -41,15 +41,6 @@ function get_nearby_solutions(solution)
       current_cluster = sol_clusters[i]
       current_points = current_cluster.points
       frontier_stops = [] # liste des points du cluster qui sont en gros à la frontière
-      # list_dist = []
-      # for m in current_points
-      #    sum_dist = 0
-      #    for n in current_points
-      #       sum_dist += solution.map[m, n]
-      #    end
-      #    push!(list_dist, 1/length(current_points) * sum_dist)
-      # end
-      # center_stop = argmin(list_dist)
       center_stop = argmin([1/length(current_points) * sum([solution.map[m, n] for m in current_points]) for n in current_points])
       furthest_stop = argmax([solution.map[k, center_stop] for k in current_points])
       dist_center = 7/10 * solution.map[furthest_stop, center_stop]
@@ -62,7 +53,7 @@ function get_nearby_solutions(solution)
       for p in frontier_stops
          nearby_sol = copy(sol_clusters) # liste de clusters de type Cluster
          if closest(p, solution)==i 
-            j = closest(p, solution, true)[2] # pb ici parce qu'il n'y a qu'un seul cluster dans solution...
+            j = closest(p, solution, true)[2] 
             push!(nearby_sol[j].points, p)
          else
             j = closest(p, solution)
@@ -80,9 +71,9 @@ function get_nearby_solutions(solution)
    return new_sol
 end
 
-function metaheuristique_tabou(s0, maxIter, maxTabuSize)
+function metaheuristique_tabou(s0, maxIter, maxTabuSize, marge_frontiere)
    """
-   INPUT : s0 = ensemble (liste) de clusters qui fonctionne
+   INPUT : s0 = ensemble de clusters qui fonctionne de type Solution
            map
            people
            length_max
@@ -94,16 +85,17 @@ function metaheuristique_tabou(s0, maxIter, maxTabuSize)
    push!(tabuList, s0)
    k=0
    while (k<maxIter)
-      sNeighborhood = get_nearby_solutions(bestCandidate)
+      sNeighborhood = get_nearby_solutions(bestCandidate, marge_frontiere)
       bestCandidate = sNeighborhood[1]
       for sCandidate in sNeighborhood
          if !(sCandidate in tabuList) 
-            if compute_solution(sCandidate) > compute_solution(bestCandidate) # pb de comparaison ici : c'est pas la bonne fonction
+            if sum([compute_total_time(b, s0.map) for b in compute_solution(sCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) # pb de comparaison ici : c'est pas la bonne fonction
                bestCandidate = sCandidate
             end
          end
       end
-      if compute_solution(bestCandidate) > compute_solution(sBest)
+      if sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(sBest)])
+      #if compute_solution(bestCandidate) > compute_solution(sBest)
          sBest = bestCandidate
       end
       push!(tabuList, bestCandidate)
@@ -316,7 +308,7 @@ function remove!(a, item)
    deleteat!(a, findall(x->x==item, a))
 end
 
-function cluster_by_warehouse(warehouses, rep_warehouses, stops)
+function cluster_by_warehouse(warehouses, rep_warehouses, stops, mapp)
    """
    INPUTS : warehouses is a list of the warehouses
             rep_warehouses is a list that gives the repartition of the buses in the warehouses,
@@ -346,7 +338,7 @@ function cluster_by_warehouse(warehouses, rep_warehouses, stops)
    for i in 1:nb_warehouses
        current_cluster = []
        while length(current_cluster) < nb_stops_per_warehouse[i]
-           nearest_stop = argmin([map[warehouses[i].start_point, j] for j in stops_left])
+           nearest_stop = argmin([mapp[warehouses[i].start_point, j.start_point] for j in stops_left])
            push!(current_cluster, stops_left[nearest_stop])
            remove!(stops_left, stops_left[nearest_stop])
        end
@@ -375,7 +367,7 @@ function creation_clusters_by_zones(people, gare, depots, map, length_max)
          rep_warehouses[index] += 1
       end
    end
-   clusters_by_warehouses = cluster_by_warehouse(warehouses, rep_warehouses, people)
+   clusters_by_warehouses = cluster_by_warehouse(warehouses, rep_warehouses, people, map)
    clusters = []
    global_solution = Solution(clusters, length_max, map, people)
    for area in clusters_by_warehouses
