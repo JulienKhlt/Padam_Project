@@ -43,7 +43,7 @@ function get_nearby_solutions(solution, marge_frontiere)
       frontier_stops = [] # liste des points du cluster qui sont en gros à la frontière
       center_stop = argmin([1/length(current_points) * sum([solution.map[m, n] for m in current_points]) for n in current_points])
       furthest_stop = argmax([solution.map[k, center_stop] for k in current_points])
-      dist_center = 7/10 * solution.map[furthest_stop, center_stop]
+      dist_center = marge_frontiere * solution.map[furthest_stop, center_stop]
       for j in current_points
          if solution.map[j, center_stop] > dist_center
             push!(frontier_stops, j)
@@ -54,15 +54,19 @@ function get_nearby_solutions(solution, marge_frontiere)
          nearby_sol = copy(sol_clusters) # liste de clusters de type Cluster
          if closest(p, solution)==i
             j = closest(p, solution, true)[2]
-            push!(nearby_sol[j].points, p)
+            add_point!(p, nearby_sol[j], 1)
+            #push!(nearby_sol[j].points, p)
          else
             j = closest(p, solution)
-            push!(nearby_sol[j].points, p)
+            add_point!(p, nearby_sol[j], 1)
+            #push!(nearby_sol[j].points, p)
          end
          if !check_cluster(nearby_sol[j], solution.map, solution.all_people, solution.length_max)
-            pop!(nearby_sol[j].points) # on annule ce qu'on a fait
+            remove_point!(len(nearby_sol[j]), nearby_sol[j])
+            #pop!(nearby_sol[j].points) # on annule ce qu'on a fait
          else
             remove!(nearby_sol[i].points, p)
+            nearby_sol[i].len -= 1
             push!(new_sol, Solution(nearby_sol, solution.length_max, solution.map, solution.all_people))
          end
       end
@@ -435,7 +439,7 @@ function remove!(a, item)
    deleteat!(a, findall(x->x==item, a))
 end
 
-function cluster_by_warehouse(warehouses, rep_warehouses, stops, mapp)
+function cluster_by_warehouse(warehouses, rep_warehouses, stops, map)
    """
    INPUTS : warehouses is a list of the warehouses
             rep_warehouses is a list that gives the repartition of the buses in the warehouses,
@@ -450,7 +454,7 @@ function cluster_by_warehouse(warehouses, rep_warehouses, stops, mapp)
    for i in 1:nb_warehouses
        nb_buses += rep_warehouses[i]
    end
-   nb_stops_per_warehouse = []
+   nb_stops_per_warehouse = [] # donne le nombre d'arrêts où aller pour chaque dépôt
    stops_in_warehouses = 0
    for i in 1:nb_warehouses
        if i<nb_warehouses
@@ -460,13 +464,17 @@ function cluster_by_warehouse(warehouses, rep_warehouses, stops, mapp)
            push!(nb_stops_per_warehouse, nb_stops - stops_in_warehouses)
        end
    end
+   
    stops_left = copy(stops)
    all_clusters = []
    for i in 1:nb_warehouses
-       current_cluster = []
-       while length(current_cluster) < nb_stops_per_warehouse[i]
-           nearest_stop = argmin([mapp[warehouses[i].start_point, j.start_point] for j in stops_left])
-           push!(current_cluster, stops_left[nearest_stop])
+      current_cluster = Cluster(Int[], gare, warehouses[i], 0)
+       #points_in_current_cluster = []
+       while current_cluster.len < nb_stops_per_warehouse[i]
+       #while length(points_in_current_cluster) < nb_stops_per_warehouse[i]
+           nearest_stop = argmin([map[warehouses[i].start_point, j.start_point] for j in stops_left])
+           add_point!(stops_left[nearest_stop].start_point, current_cluster, 1)
+           #push!(points_in_current_cluster, stops_left[nearest_stop])
            remove!(stops_left, stops_left[nearest_stop])
        end
        push!(all_clusters, current_cluster)
@@ -495,11 +503,25 @@ function creation_clusters_by_zones(people, gare, depots, map, length_max)
       end
    end
    clusters_by_warehouses = cluster_by_warehouse(warehouses, rep_warehouses, people, map)
-   clusters = []
-   global_solution = Solution(clusters, length_max, map, people)
-   for area in clusters_by_warehouses
-      solution = creation_cluster(people, gare, depots, map, length_max)
-      push!(global_solution.clusters, solution.clusters)
+   if length(clusters_by_warhouses)!=length(warehouses)
+      println("ERREUR : IL N'Y A PAS AUTANT DE ZONES QUE DE DEPOTS")
+   end
+
+   global_solution = Solution(Clusters[], length_max, map, people)
+   for index_area in 1:length(clusters_by_warehouses)
+      area = clusters_by_warehouses[index_area]
+      if rep_warehouses[index_area] > 1 # s'il y a plusieurs bus à ce dépôt
+         people_area = area.points
+         depots_area = [area.depot for i in 1:length(rep_warehouses[index_area])]
+         solution = creation_cluster(people_area, gare, depots_area, map, length_max, true)
+         push!(global_solution.clusters, solution.clusters)
+      else
+         if warehouses[index_area] != area.depot
+            println("ERREUR DE LIEN ENTRE LES DEPOTS")
+         end
+         push!(global_solution.clusters, area)
+      end
+      
    end
    return global_solution
 end
