@@ -28,10 +28,10 @@ function create_graph(map)
     return g
 end
 
-function build_tree(edges)
+function build_tree(edges, points)
     tree = []
     for e in edges
-        push!(tree, [e.src, e.dst])
+        push!(tree, [points[e.src], points[e.dst]])
     end
     return tree
 end
@@ -40,8 +40,8 @@ function creation_tree(points, map)
     new_map = restricted_map(map, points)
     graph = create_graph(new_map)
     edges = kruskal_mst(graph)
-    tree = build_tree(edges)
-    return tree, time_tree(tree, new_map)
+    tree = build_tree(edges, points)
+    return tree, time_tree(tree, map)
 end
 
 function kruskal(depots, gare, map, people)
@@ -54,7 +54,7 @@ function kruskal(depots, gare, map, people)
 end
 
 function modified_map(map, μ, i)
-    new_map = map[:]
+    new_map = map[:, :]
     for j in 1:size(map)[1]
         new_map[i, j] += μ
         new_map[j, i] += μ
@@ -72,19 +72,19 @@ function degree(tree, i)
     return deg
 end
 
-function get_the_last_ones(tree, k, i, bool=true)
+function get_the_last_ones(tree, k, i, map, bool=true)
     last_ones = []
     for a in length(tree):-1:1
         if bool
             if !(i in tree[a])
-                push!(last_ones, tree[a])
+                push!(last_ones, map[tree[a][1], tree[a][2]])
                 if length(last_ones) == k
                     return last_ones
                 end
             end
         else
             if (i in tree[a])
-                push!(last_ones, tree[a])
+                push!(last_ones, map[tree[a][1], tree[a][2]])
                 if length(last_ones) == k
                     return last_ones
                 end
@@ -95,19 +95,21 @@ end
 
 function get_the_first_ones(map, i, k, deg)
     cost = collect(map[i, j] for j in 1:size(map)[1])
-    return argmin(cost)[deg+1:k]
+    return sort(cost)[deg+1:k]
+end
 
 
 function get_by_order(map)
     ordered = sortperm(vec(map))
     return [[(o-1)%size(map)[1] + 1, (o-1)÷size(map)[1] + 1] for o in ordered]
+end
 
 function get(map, k, i, val)
     first_ones = []
     ordered = get_by_order(map)
     for o in ordered
         if map[o[1], o[2]] < val && !(i in o)
-            push!(first_ones, o)
+            push!(first_ones, map[o[1], o[2]])
             if length(first_ones) == k
                 return first_ones
             end
@@ -128,15 +130,15 @@ function borne_inf_v3(depots, gare, map, people)
 
     if deg == k
         return tree, time
-    else if deg < k
-        A = get_the_last_ones(tree, k-deg, 1)
+    elseif deg < k
+        A = get_the_last_ones(tree, k-deg, 1, map)
         F = get_the_first_ones(map, 1, k, deg)
-        μ = minimum([A[length(A) - i] - F[i] for i in 1:length(A)]) - 0.01
+        μ = minimum([A[length(A) - i + 1] - F[i] for i in 1:length(A)]) - 0.01
         new_map = modified_map(map, μ, 1)
         return kruskal(depots, gare, new_map, people)
     else 
-        A = get_the_last_ones(tree, deg-k, 1, false)
-        F = get(map, deg - k, 1, map[A[1, 1]])
+        A = get_the_last_ones(tree, deg-k, 1, map, false)
+        F = get(map, deg - k, 1, A[1, 1])
         μ = minimum([A[i] - F[i] for i in 1:length(A)]) - 0.01
         new_map = modified_map(map, μ, 1)
         return kruskal(depots, gare, new_map, people)

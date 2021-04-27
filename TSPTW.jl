@@ -13,7 +13,7 @@ end
 
 function resolution_tsptw(nb_people, people, map, M)
     # Pour l'instant un point = un client
-    model = Model(Gurobi.Optimizer)
+    model = Model(optimizer_with_attributes(Gurobi.Optimizer,"TimeLimit"=>0.2,"OutputFlag"=>0))
 
     @variable(model, T[1:nb_people] >= 0)
     @variable(model, y[1:nb_people, 1:nb_people], Bin)
@@ -31,7 +31,7 @@ function resolution_tsptw(nb_people, people, map, M)
     @objective(model, Max, sum(T[i] for i in 1:nb_people))
     optimize!(model)
 
-    affichage(T, nb_people)
+    # affichage(T, nb_people)
     return T
 end
 
