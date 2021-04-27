@@ -1,9 +1,5 @@
 include("Cluster.jl")
 
-function insertion_heuristic()
-   solution = creation_cluster()
-end
-
 function creation_cluster(people, gare, depots, map, length_max, check = true)
    all_people = people[:]
    clusters = []
@@ -19,6 +15,21 @@ function creation_cluster(people, gare, depots, map, length_max, check = true)
    for p in points_left(all_people)
       size = length(nbre_people(p, all_people))
       add_point!(p, sol.clusters[best_cluster(p, sol, size, check)], size)
+   end
+   return sol
+end
+
+function creation_cluster_betterbutlonger(people, gare, depots, map, length_max)
+   clusters = []
+   for i in 1:length(depots)
+      push!(clusters, Cluster([], gare, depots[i], 0))
+   end
+
+   sol = Solution(clusters, length_max, map, people)
+
+   for p in points_left(people)
+      size = length(nbre_people(p, people))
+      add_point!(p, sol.clusters[even_better_cluster(p, people, sol)], size)
    end
    return sol
 end

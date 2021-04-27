@@ -20,6 +20,12 @@ println(degree(tree, 1))
 println(time)
 
 sol = creation_cluster(people, gare, depots, mappy, 20)
+buses = compute_solution(sol)
+total_time = get_total_time.(buses)
+println(total_time)
+println(sum(total_time))
+
+sol = creation_cluster_betterbutlonger(people, gare, depots, mappy, 20)
 bus = compute_solution(sol)
 total_time = get_total_time.(bus)
 println(total_time)

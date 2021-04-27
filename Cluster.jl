@@ -89,6 +89,35 @@ function best_cluster(point, sol, size, check = true)
     throw(ErrorException("Tous les clusters sont pleins ou on ne peut insérer le point nul part"))
 end
 
+function get_new_time(cluster, point)
+    new_cluster = Cluster(cluster.points, cluster.gare, cluster.depot, cluster.len)
+    add_point!(point, new_cluster, 1)
+    try
+        bus = creation_bus(new_cluster, 1, sol.map, sol.all_people)
+        return get_total_time(bus)
+    catch
+        return 1e10
+    end
+end
+
+function even_better_cluster(point, all_people, sol)
+    size = length(nbre_people(point, all_people))
+    min = 1e9
+    ind = 0
+    for c in 1:length(sol.clusters)
+        if size + sol.clusters[c].len <= sol.length_max
+            time = get_new_time(sol.clusters[c], point)
+            if time < min
+                ind = c
+            end
+        end
+    end
+    if ind == 0
+        throw(ErrorException("Can't be added any where"))
+    end
+    return ind
+end
+
 function closest_mean(point, Solution, list=false)
     # if list==true, return the closest cluster to point
     # if list==false, return a list of the order of clusters for the point

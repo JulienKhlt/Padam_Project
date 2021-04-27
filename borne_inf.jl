@@ -71,3 +71,74 @@ function degree(tree, i)
     end
     return deg
 end
+
+function get_the_last_ones(tree, k, i, bool=true)
+    last_ones = []
+    for a in length(tree):-1:1
+        if bool
+            if !(i in tree[a])
+                push!(last_ones, tree[a])
+                if length(last_ones) == k
+                    return last_ones
+                end
+            end
+        else
+            if (i in tree[a])
+                push!(last_ones, tree[a])
+                if length(last_ones) == k
+                    return last_ones
+                end
+            end
+        end
+    end
+end
+
+function get_the_first_ones(map, i, k, deg)
+    cost = collect(map[i, j] for j in 1:size(map)[1])
+    return argmin(cost)[deg+1:k]
+
+
+function get_by_order(map)
+    ordered = sortperm(vec(map))
+    return [[(o-1)%size(map)[1] + 1, (o-1)÷size(map)[1] + 1] for o in ordered]
+
+function get(map, k, i, val)
+    first_ones = []
+    ordered = get_by_order(map)
+    for o in ordered
+        if map[o[1], o[2]] < val && !(i in o)
+            push!(first_ones, o)
+            if length(first_ones) == k
+                return first_ones
+            end
+        end
+    end
+end
+
+
+function borne_inf_v3(depots, gare, map, people)
+    tree, time = kruskal(depots, gare, map, people)
+    k = length(depots)
+    deg = degree(tree, 1)
+
+    people = new_people(people, gare, depots)
+    points = collect(people[i].start_point for i in 1:length(people))
+    points = sort(points)
+    points = fastuniq(points)
+
+    if deg == k
+        return tree, time
+    else if deg < k
+        A = get_the_last_ones(tree, k-deg, 1)
+        F = get_the_first_ones(map, 1, k, deg)
+        μ = minimum([A[length(A) - i] - F[i] for i in 1:length(A)]) - 0.01
+        new_map = modified_map(map, μ, 1)
+        return kruskal(depots, gare, new_map, people)
+    else 
+        A = get_the_last_ones(tree, deg-k, 1, false)
+        F = get(map, deg - k, 1, map[A[1, 1]])
+        μ = minimum([A[i] - F[i] for i in 1:length(A)]) - 0.01
+        new_map = modified_map(map, μ, 1)
+        return kruskal(depots, gare, new_map, people)
+    end
+end
