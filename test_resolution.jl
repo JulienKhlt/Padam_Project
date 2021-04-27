@@ -33,3 +33,9 @@ println(sum(total_time))
 
 # sol = hierarchical_clustering(people, mappy, gare, depots, 20)
 # println(sol)
+
+# sol_Louise = creation_clusters_by_zones(people, gare, depots, mappy, 20)
+# bus = compute_solution(sol_Louise)
+# total_time = get_total_time.(bus)
+# println(total_time)
+# println(sum(total_time))
