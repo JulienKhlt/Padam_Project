@@ -1,4 +1,5 @@
 include("TSPTW.jl")
+include("distance.jl")
 
 mutable struct Cluster
     points::Vector{Int}
@@ -49,43 +50,32 @@ function remove_cluster!(id_cluster, solution)
     deleteat!(solution.clusters, id_cluster)
 end
 
-function dist_clo(point, map, Cluster)
-    return minimum([map[point, i] for i in Cluster.points])
-end
-
-function dist_mean(point, map, Cluster)
-    return 0
-end
-
 function closest_pers(point, map, people)
     return people[argmin([map[point, i.start_point] for i in people])]
 end
 
-function closest(point, Solution, list=false)
+function closest(point, Solution, metric, list=false)
     # if list==false, return the closest cluster to point
     # if list==true, return a list of the order of clusters for the point
     if list
-        #list = [dist_clo(point, Solution.map, i) for i in Solution.clusters]
-        #println(length(list))
-        #return sortperm(list)
-        return sortperm([dist_clo(point, Solution.map, i) for i in Solution.clusters])
+        return sortperm([metric(point, Solution.map, i) for i in Solution.clusters]), sort([metric(point, Solution.map, i) for i in Solution.clusters])
     else
-        return argmin([dist_clo(point, Solution.map, i) for i in Solution.clusters])
+        return argmin([metric(point, Solution.map, i) for i in Solution.clusters])
     end
 end
 
-function best_cluster(point, sol, size, check = true)
-    id_clusters = closest(point, sol, true)
+function best_cluster(point, sol, size, metric, check = false)
+    id_clusters, dist = closest(point, sol, metric, true)
     for c in id_clusters
         if sol.clusters[c].len + size < sol.length_max
             if check
                 cluster = Cluster(sol.clusters[c].points, sol.clusters[c].gare, sol.clusters[c].depot, sol.clusters[c].len)
                 add_point!(point, cluster, size)
                 if check_cluster(cluster, sol.map, sol.all_people, sol.length_max)
-                    return c
+                    return c, dist[c]
                 end
             else
-                return c
+                return c, dist[c]
             end
         end
     end
@@ -133,9 +123,6 @@ end
 
 function nbre_people(point, people)
     return [people[i] for i in 1:length(people) if people[i].start_point == point]
-end
-
-function closest_convex(point, Solution)
 end
 
 function creation_bus(cluster, id, map, all_people)

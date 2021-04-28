@@ -1,14 +1,14 @@
 using SparseArrays
 using LightGraphs
 
-include("Person.jl")
-include("Bus.jl")
-include("TSPTW.jl")
-include("mTSPTW.jl")
-include("Parsers.jl")
-include("Cluster.jl")
-include("Resolution.jl")
-include("plot.jl")
+include("../Person.jl")
+include("../Bus.jl")
+include("../TSPTW.jl")
+include("../mTSPTW.jl")
+include("../Parsers.jl")
+include("../Cluster.jl")
+include("../Resolution.jl")
+include("../plot.jl")
 
 file_directory = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/"
 client_file_name = joinpath(file_directory, "customer_requests.csv")

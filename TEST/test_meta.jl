@@ -1,13 +1,13 @@
 using SparseArrays
 using LightGraphs
 
-include("Person.jl")
-include("Bus.jl")
+include("../Person.jl")
+include("../Bus.jl")
 # include("TSPTW.jl")
 # include("mTSPTW.jl")
-include("Parsers.jl")
-include("Cluster.jl")
-include("Resolution.jl")
+include("../Parsers.jl")
+include("../Cluster.jl")
+include("../Resolution.jl")
 
 mappy = parser("Data/large.csv")
 people, gare, depots = build_people("Data/people_large.csv")

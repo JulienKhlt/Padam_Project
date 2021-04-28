@@ -1,5 +1,36 @@
 include("Cluster.jl")
 
+function creation_cluster_with_metric(people, gare, depots, map, metric, length_max, from_point=true, check=false)
+   all_people = people[:]
+   clusters = []
+   for i in 1:length(depots)
+      push!(clusters, Cluster([], gare, depots[i], 0))
+   end
+
+   sol = Solution(clusters, length_max, map, people)
+
+   if from_point
+      while length(points_left(all_people)) != 0
+         best_dist = 1e6
+         best_clu = 0
+         best_point = 0
+         for p in points_left(all_people)
+            size = length(nbre_people(p, all_people))
+            cluster, dist = best_cluster(p, sol, size, metric, check)
+            if dist < best_dist
+               best_dist = dist
+               best_clu = cluster
+               best_point = p
+            end
+         end
+         size = length(nbre_people(best_point, all_people))
+         add_point!(best_point, sol.clusters[best_clu], size)
+         all_people = remove_people(all_people, best_point)
+      end
+   end
+   return sol
+end
+
 function creation_cluster(people, gare, depots, map, length_max, check = true)
    all_people = people[:]
    clusters = []
@@ -14,7 +45,7 @@ function creation_cluster(people, gare, depots, map, length_max, check = true)
 
    for p in points_left(all_people)
       size = length(nbre_people(p, all_people))
-      add_point!(p, sol.clusters[best_cluster(p, sol, size, check)], size)
+      add_point!(p, sol.clusters[best_cluster(p, sol, size, dist_clo, check)[1]], size)
    end
    return sol
 end
