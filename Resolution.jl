@@ -97,7 +97,7 @@ function get_nearby_solutions(buses, metric, people, map, length_max, marge_fron
       for p in frontier_stops
          nearby_sol = copy(sol_buses) # liste de bus de type Bus
          j = closest_bus(p, buses, i, metric, map)
-         if length(nearby_sol[j].people) < length_max 
+         if length(nearby_sol[j].people) < length_max
             add_point_bus!(nearby_sol[j], p, people)
             remove_point_bus!(nearby_sol[i], p)
             rearrangement_2opt(nearby_sol[j], map)
@@ -136,8 +136,8 @@ end
 function metaheuristique_tabou(s0, maxIter, maxTabuSize, metric, people, map, length_max, marge_frontiere)
    """
    INPUT : s0 = liste de bus qui fonctionne
-           maxIter, 
-           maxTabuSize, 
+           maxIter,
+           maxTabuSize,
            marge_frontiere
            map
            people
@@ -351,58 +351,8 @@ function buses_allowed(depots)
    end
    return nb_bus_allowed, index_corres
 end
-"""
-function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses)
 
-   INPUT : people = clients (type Person)
-           map
-           gare = gare (type Person)
-           depots = vector de dépôts (type Person)
-           length_max = capacité maximale d'un bus
-   OUTPUT : calcul d'une Solution par clustering hierarchique (fusion de clusters avec distance de ward)
-
-   train_index = gare.start_point
-   all_people = people[:]
-   #on part d'une solution de départ où le cluster i est composé du seul client i
-   sol = Solution([],length_max,map, all_people)
-   for k in 1:length(people)
-      list = [people[k].start_point]
-      cluster = Cluster(list, gare, closest_depot(map,list, depots), 1)
-      add_cluster!(cluster, sol)
-   end
-   boo = true
-   while boo && length(sol.clusters) > nb_buses #tant qu'on peut fusionner des clusters de façon à ce qu'ils restent admissibles pour le TSPTW
-      i = 1
-      admissible = false
-      ward_distances = min_ward_dist(sol, gare)
-      while !admissible && i <= floor(length(sol.clusters)*(length(sol.clusters)-1)/2)
-         #on prend la première paire de clusters telle que leur fusion reste admissible (minimisation de la distance de ward)
-         i_min= convert(Int, ward_distances[i][2])
-         j_min=  convert(Int,ward_distances[i][3])
-         aggregate = concat(sol.clusters[i_min], sol.clusters[j_min], map, depots)
-         if sol.clusters[i_min].len+sol.clusters[j_min].len <= length_max
-            #dans ce cas, on fusionne les clusters
-            admissible = true
-            aggregate = concat(sol.clusters[i_min], sol.clusters[j_min], map, depots)
-            remove_cluster!(max(i_min, j_min), sol)
-            remove_cluster!(min(i_min,j_min), sol)
-            add_cluster!(aggregate,sol)
-         else
-            table = sort!([(ward_dist(sol.clusters[i_min],Cluster([j],gare, depots[1], 1), map, train_index), j) for j in sol.clusters[j_min].points], by=x->x[1])
-            print(table, "\n")
-         end
-         i+=1
-      end
-      if !admissible
-         boo = false
-      end
-   end
-   depots_dispatch = overloaded(sol, depots)
-   print(depots_dispatch)
-   return sol
-end"""
-
-function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses)
+function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses, metric)
    """
    INPUT : people = clients (type Person)
            map
@@ -424,11 +374,11 @@ function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses
    while boo && length(sol.clusters) > nb_buses #tant qu'on peut fusionner des clusters de façon à ce qu'ils restent admissibles pour le TSPTW
       i = 1
       admissible = false
-      ward_distances = min_ward_dist(sol, gare)
+      distances = min_dist(sol, metric)
       while !admissible && i <= floor(length(sol.clusters)*(length(sol.clusters)-1)/2)
          #on prend la première paire de clusters telle que leur fusion reste admissible (minimisation de la distance de ward)
-         i_min= convert(Int, ward_distances[i][2])
-         j_min=  convert(Int,ward_distances[i][3])
+         i_min= convert(Int, distances[i][2])
+         j_min=  convert(Int,distances[i][3])
          if sol.clusters[i_min].len+sol.clusters[j_min].len <= length_max
             #dans ce cas, on fusionne les clusters
             admissible = true
@@ -439,7 +389,7 @@ function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses
          else
             if sol.clusters[j_min].len != length_max && sol.clusters[i_min].len != length_max
                if sol.clusters[i_min].len > sol.clusters[j_min].len
-                  table = sort!([(ward_dist(sol.clusters[i_min],Cluster([j],gare, depots[1], 1), map, train_index), j) for j in sol.clusters[j_min].points], by=x->x[1])
+                  table = sort!([(metric(sol.clusters[i_min],Cluster([j],gare, depots[1], 1), map), j) for j in sol.clusters[j_min].points], by=x->x[1])
                   new_len = length_max-sol.clusters[i_min].len
                   new_cluster = Cluster([table[i][2] for i in 1:new_len], gare, depots[1], new_len)
                   aggregate = concat(sol.clusters[i_min],new_cluster, map, depots)
@@ -450,7 +400,7 @@ function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses
                   add_cluster!(aggregate,sol)
                   add_cluster!(difference,sol)
                else
-                  table = sort!([(ward_dist(Cluster([i],gare, depots[1], 1), sol.clusters[j_min], map, train_index), i) for i in sol.clusters[i_min].points], by=x->x[1])
+                  table = sort!([(metric(Cluster([i],gare, depots[1], 1), sol.clusters[j_min], map), i) for i in sol.clusters[i_min].points], by=x->x[1])
                   new_len = length_max-sol.clusters[j_min].len
                   new_cluster = Cluster([table[i][2] for i in 1:new_len], gare, depots[1], new_len)
                   aggregate = concat(sol.clusters[j_min],new_cluster, map, depots)
@@ -529,7 +479,7 @@ function cluster_by_warehouse(warehouses, rep_warehouses, stops, map)
            push!(nb_stops_per_warehouse, nb_stops - stops_in_warehouses)
        end
    end
-   
+
    stops_left = copy(stops)
    all_clusters = []
    for i in 1:nb_warehouses
@@ -586,7 +536,7 @@ function creation_clusters_by_zones(people, gare, depots, map, length_max)
          end
          push!(global_solution.clusters, area)
       end
-      
+
    end
    return global_solution
 end
