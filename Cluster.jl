@@ -64,6 +64,19 @@ function closest(point, Solution, metric, list=false)
     end
 end
 
+function closest_bus(id_point, buses, id_bus, metric, map)
+    clusters = Array{Cluster}[]
+    for b in buses
+        push!(clusters, Cluster(b.stops[2:length(b)-1], b.stops[end], b.stops[1], length(b)))
+    end
+    arg_dist = sortperm([metric(id_point, map, i) for i in clusters])
+    if arg_dist[1] == id_bus
+        return arg_dist[2]
+    else
+        return arg_dist[1]
+    end
+end
+
 function best_cluster(point, sol, size, metric, check = false)
     id_clusters, dist = closest(point, sol, metric, true)
     for c in id_clusters

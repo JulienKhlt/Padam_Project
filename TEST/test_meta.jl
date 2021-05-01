@@ -8,14 +8,19 @@ include("../Bus.jl")
 include("../Parsers.jl")
 include("../Cluster.jl")
 include("../Resolution.jl")
+include("../distance.jl")
 
 mappy = parser("Data/large.csv")
 people, gare, depots = build_people("Data/people_large.csv")
-sol = creation_cluster(people, gare, depots, mappy, 20)
+length_max = 20
+sol = creation_cluster(people, gare, depots, mappy, length_max)
+buses = compute_solution(sol) # liste des bus de la solutin de type Bus
+
 maxIter = 3
 maxTabuSize = 3
 margeFrontiere = 9/10
-autre_sol = metaheuristique_tabou(sol, maxIter, maxTabuSize, margeFrontiere)
+metric = dist_clo
+autre_sol = metaheuristique_tabou(buses, maxIter, maxTabuSize, metric, people, mappy, length_max, margeFrontiere)
 println("les deux solutions sont égales", sum([compute_total_time(b, sol.map) for b in compute_solution(sol)]) == sum([compute_total_time(b, autre_sol.map) for b in compute_solution(autre_sol)]))
 
 """message d'erreur : 

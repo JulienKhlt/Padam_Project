@@ -69,19 +69,21 @@ function remove!(a, item)
    deleteat!(a, findall(x->x==item, a))
 end
 
-function get_nearby_solutions(solution, marge_frontiere)
+function get_nearby_solutions(buses, metric, people, map, length_max, marge_frontiere)
    """
-   INPUT : solution = Solution de clusters qui fonctionne
+   INPUT : buses = liste de bus (type Bus) qui forment une solution
+            marge_frontiere = fraction qui définit l'épaisseur de la frontière
+            metric = moyen de calculer la distance d'un point à un cluster
             map
             people
             length_max
-   OUTPUT : new_sol = liste contenant toutes les solutions (de type Solution) voisines de l'input
+   OUTPUT : new_sol = liste contenant toutes les solutions (de type liste de Bus) voisines de l'input
    """
-   sol_clusters = copy(solution.clusters) # liste de clusters de type Cluster
-   new_sol = [] # liste contenant des types Solution
-   for i in 1:length(sol_clusters) # pour chaque cluster de la solution
-      current_cluster = sol_clusters[i]
-      current_points = current_cluster.points
+   sol_buses = copy(buses) # liste de bus de type Bus
+   new_sol = [] # liste contenant des listes de Bus
+   for i in 1:length(sol_buses) # pour chaque bus de la solution
+      current_bus = sol_buses[i]
+      current_points = current_bus.stops
       frontier_stops = [] # liste des points du cluster qui sont en gros à la frontière
       center_stop = argmin([1/length(current_points) * sum([solution.map[m, n] for m in current_points]) for n in current_points])
       furthest_stop = argmax([solution.map[k, center_stop] for k in current_points])
@@ -93,23 +95,37 @@ function get_nearby_solutions(solution, marge_frontiere)
       end
 
       for p in frontier_stops
-         nearby_sol = copy(sol_clusters) # liste de clusters de type Cluster
-         if closest(p, solution)==i
-            j = closest(p, solution, true)[2]
-            add_point!(p, nearby_sol[j], 1)
-            #push!(nearby_sol[j].points, p)
-         else
-            j = closest(p, solution)
-            add_point!(p, nearby_sol[j], 1)
-            #push!(nearby_sol[j].points, p)
-         end
-         if !check_cluster(nearby_sol[j], solution.map, solution.all_people, solution.length_max)
-            remove_point!(len(nearby_sol[j]), nearby_sol[j])
-            #pop!(nearby_sol[j].points) # on annule ce qu'on a fait
-         else
-            remove!(nearby_sol[i].points, p)
-            nearby_sol[i].len -= 1
-            push!(new_sol, Solution(nearby_sol, solution.length_max, solution.map, solution.all_people))
+         nearby_sol = copy(sol_buses) # liste de bus de type Bus
+         j = closest_bus(p, buses, i, metric, map)
+         if length(nearby_sol[j].people) < length_max 
+            add_point_bus!(nearby_sol[j], p, people)
+            remove_point_bus!(nearby_sol[i], p)
+            rearrangement_2opt(nearby_sol[j], map)
+            # Il reste à vérifier la time window pour les people du bus :
+            ordered_people = Array{Person}[] # VOIR SI ON PEUT PAS OPTIMISER CA
+            for k in nearby_sol[j].stops
+               for person in nearby_sol[j].people
+                  if person.start_point == stop
+                     push!(ordered_people, person)
+                  end
+               end
+            end
+            # remarque : est ce que si plusieurs personnes sont au même arrêt elles ont le même star_time ?
+            # si non, il faut encore trier ordered_people
+            t = ordered_people[1].start_time
+            time_at_stops = [t]
+            check_bus = true
+            for k in 2:length(nearby_sol[j])
+               t += map[nearby_sol[j].stops[k-1], nearby_sol[j].stops[k]] #temps auquel on arrive à cet arrêt
+               if t > ordered_people[k].end_time # si le bus arrive trop tard à l'arrêt, le trajet n'est pas admissible
+                  check_bus = false
+               elseif t < ordered_people[k].start_time # si le bus arrive en avance, il doit attendre la personne
+                  t = ordered_people[k].start_time
+               end
+            end
+            if check_bus
+               push!(new_sol, nearby_sol)
+            end
          end
       end
 
@@ -117,13 +133,17 @@ function get_nearby_solutions(solution, marge_frontiere)
    return new_sol
 end
 
-function metaheuristique_tabou(s0, maxIter, maxTabuSize, marge_frontiere)
+function metaheuristique_tabou(s0, maxIter, maxTabuSize, metric, people, map, length_max, marge_frontiere)
    """
-   INPUT : s0 = ensemble de clusters qui fonctionne de type Solution
+   INPUT : s0 = liste de bus qui fonctionne
+           maxIter, 
+           maxTabuSize, 
+           marge_frontiere
            map
            people
            length_max
-   OUTPUT : sBest = autre ensemble de clusters meilleur (ou égal) au premier
+           metric
+   OUTPUT : sBest = autre liste de bus meilleure (ou égale) à la première
    """
    sBest = s0
    bestCandidate = s0
@@ -131,17 +151,20 @@ function metaheuristique_tabou(s0, maxIter, maxTabuSize, marge_frontiere)
    push!(tabuList, s0)
    k=0
    while (k<maxIter)
-      sNeighborhood = get_nearby_solutions(bestCandidate, marge_frontiere)
+      sNeighborhood = get_nearby_solutions(bestCandidate, metric, people, map, length_max, marge_frontiere)
       bestCandidate = sNeighborhood[1]
       for sCandidate in sNeighborhood
          if !(sCandidate in tabuList)
-            if sum([compute_total_time(b, s0.map) for b in compute_solution(sCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) # pb de comparaison ici : c'est pas la bonne fonction
+            #if compute_solution(sCandidate) > compute_solution(bestCandidate)
+            #if sum([compute_total_time(b, s0.map) for b in compute_solution(sCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) # pb de comparaison ici : c'est pas la bonne fonction
+            if sum([bus.time for bus in sCandidate]) > sum([bus.time for bus in bestCandidate])
                bestCandidate = sCandidate
             end
          end
       end
-      if sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(sBest)])
+      #if sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(sBest)])
       #if compute_solution(bestCandidate) > compute_solution(sBest)
+      if sum([bus.time for bus in bestCandidate]) > sum([bus.time for bus in sBest])
          sBest = bestCandidate
       end
       push!(tabuList, bestCandidate)
