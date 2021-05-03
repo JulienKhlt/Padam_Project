@@ -66,7 +66,8 @@ end
 
 
 "Affiche les dépots et la gare"
-function plot_terminus(localisations::Vector{Bus_stop}, drivers::Vector{Person}, index_gare, pl = nothing)::Plots.Plot
+function plot_terminus(localisations::Vector{Bus_stop}, drivers::Vector{Person}, gare::Person, pl = nothing)::Plots.Plot
+    index_gare = gare.start_point
     if pl == nothing
         pl = plot()
     end
@@ -113,7 +114,7 @@ Inputs :
 Affiche le graphique des arrets de bus, des dépots et de la gare
 Output : le graphe
 """
-function plot_bus_stops(localisations::Vector{Bus_stop}, drivers::Vector{Person}, index_gare)::Plots.Plot
+function plot_bus_stops(localisations::Vector{Bus_stop}, drivers::Vector{Person}, gare::Person)::Plots.Plot
     pl = plot()
     #On affiche les arrets de bus
     latitude_list = []
@@ -128,7 +129,7 @@ function plot_bus_stops(localisations::Vector{Bus_stop}, drivers::Vector{Person}
         marker = (:circle, 3, 0.7, "black"),
         label = "arrets de bus",
     )
-    plot_terminus(localisations, drivers, index_gare, pl)
+    plot_terminus(localisations, drivers, gare, pl)
     plot!(title = "Carte des arrets de bus")
     return pl
 end
