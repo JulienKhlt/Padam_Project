@@ -66,7 +66,7 @@ function restricted_map(map, points)
         end
     end
     return new_map
-end   
+end
 
 function convert_time_str_int(time)
     #conversion from format h:m:s to seconds
@@ -179,7 +179,7 @@ Input : driver_file_name qui est le nom du fichier des infos des conducteurs
 Récupère les indices des dépots et de la gare
 Outputs :
 - drivers la liste des drivers (de type Person)
-- index_gare l'indice de la gare (de type int, à changer vers un type Person ?)
+- gare (attention de type Person !)
 """
 function build_drivers_and_gare(driver_file_name)
     data_driver = open(driver_file_name) do file
@@ -187,7 +187,6 @@ function build_drivers_and_gare(driver_file_name)
     end
 
     nb_drivers =  length(data_driver)-1
-    index_gare = parse(Int,split(data_driver[2], ";")[3])
     drivers = Person[]
 
     for i in 1:nb_drivers
@@ -198,5 +197,9 @@ function build_drivers_and_gare(driver_file_name)
         add_person(depot, start_time, end_time, drivers)
     end
 
-    return drivers, index_gare
+    train_departure = convert_time_str_int(split(data_driver[2], ";")[5])
+    index_gare = parse(Int,split(data_driver[2], ";")[3])
+    gare = Person(start_point = index_gare, start_time = train_departure, end_time = train_departure)
+
+    return drivers, gare
 end

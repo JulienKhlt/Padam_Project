@@ -64,6 +64,50 @@ function closest(point, Solution, metric, list=false)
     end
 end
 
+function closest_bus(id_point, buses, id_bus, metric, gare, depots, map)
+    clusters = []
+    for b in buses
+
+        # creons le cluster correspondant au trajet du bus
+        # pour cela, il faut trouver quel point correspond au dépôt
+        depot_bus = Person(start_point=0, start_time=0., end_time=0.)
+        id_depot = b.stops[1]
+        find_depot = false
+        for d in depots
+            if d.start_point == id_depot
+                depot_bus = d
+                find_depot = true
+            end
+        end
+        if !find_depot
+            println("PROBLEME : on n'a pas trouvé le dépôt.")
+            println(id_depot)
+        end
+
+        # ensuite, il faut une liste des points à visiter sans le dépôt ni la gare
+        points = []
+        find_depot = false
+        for p in b.people
+            if (p.start_point != id_depot) && (p.start_point != gare.start_point)
+                push!(points, p.start_point)
+            elseif find_depot
+                push!(points, p.start_point)
+            elseif (p.start_point != gare.start_point)
+                find_depot = true
+            end
+        end
+
+
+        push!(clusters, Cluster(points, gare, depot_bus, length(b.people)))
+    end
+    arg_dist = sortperm([metric(id_point, map, i) for i in clusters])
+    if arg_dist[1] == id_bus
+        return arg_dist[2]
+    else
+        return arg_dist[1]
+    end
+end
+
 function best_cluster(point, sol, size, metric, check = false)
     id_clusters, dist = closest(point, sol, metric, true)
     for c in id_clusters

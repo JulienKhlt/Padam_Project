@@ -1,16 +1,20 @@
 using SparseArrays
 using LightGraphs
+using SimpleWeightedGraphs
 
 include("../Person.jl")
 include("../Bus.jl")
-include("../TSPTW.jl")
-include("../mTSPTW.jl")
+#include("../TSPTW.jl")
+#include("../mTSPTW.jl")
 include("../Parsers.jl")
 include("../Cluster.jl")
-include("../Resolution.jl")
+include("../Resolution_clusters.jl")
 include("../plot.jl")
+include("../borne_inf.jl")
+include("../distance_cluster.jl")
+include("../distance.jl")
 
-file_directory = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/"
+file_directory = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/Villages/"
 client_file_name = joinpath(file_directory, "customer_requests.csv")
 driver_file_name = joinpath(file_directory, "driver_shifts.csv")
 map_file_name = joinpath(file_directory, "mTSP_matrix.csv")
@@ -24,27 +28,49 @@ people = build_people_real_file_only_client(client_file_name, driver_file_name, 
 gare_type_pers = Person(start_point = gare, start_time = 0.0, end_time = 28800.0)
 mappy,n = parser_real_file(map_file_name)
 nb_buses = length(depots)
-sol = hierarchical_clustering(people, mappy, gare_type_pers, depots, 20, nb_buses)
+
+metric = ward_dist
+sol = hierarchical_clustering(people, mappy, gare_type_pers, depots, 20, nb_buses, metric)
 println(sol)
 pl = plot_terminus(loc, depots, gare)
 p_hierarchical_clustering = plot_clusters(sol, loc, pl, true)
 
-"""for i in 1:length(sol.clusters)
-    if length(sol.clusters[i].points)<20
-        print(i, " ", sol.clusters[i].len, "   ")
-    end
-end"""
-sol_test = creation_cluster(people, gare_type_pers, depots, map, 20)
-pl_test = plot_terminus(loc, depots, gare)
-p_test = plot_clusters(sol_test, loc, pl_test, true)
+
+metric = dist_max
+sol = hierarchical_clustering(people, mappy, gare_type_pers, depots, 20, nb_buses, metric)
+println(sol)
+pl = plot_terminus(loc, depots, gare)
+p_hierarchical_clustering = plot_clusters(sol, loc, pl, true)
 
 
-id=1
-for cluster in sol.clusters[1:nb_buses]
-    print(cluster)
-    people = find_people(cluster, sol.all_people)
-    people = new_people_cluster(people, cluster.gare, cluster.depot)
-    stops, time = order_point(resolution_tsptw(length(people), people, sol.map, 10000), people)
-    print(Bus(id=id, people=people, stops=stops, time=time))
-    id+=1
-end
+metric = dist_min
+sol = hierarchical_clustering(people, mappy, gare_type_pers, depots, 20, nb_buses, metric)
+println(sol)
+pl = plot_terminus(loc, depots, gare)
+p_hierarchical_clustering = plot_clusters(sol, loc, pl, true)
+
+
+metric = sum_dist_point_mean
+sol = hierarchical_clustering(people, mappy, gare_type_pers, depots, 20, nb_buses, metric)
+println(sol)
+pl = plot_terminus(loc, depots, gare)
+p_hierarchical_clustering = plot_clusters(sol, loc, pl, true)
+
+
+metric = angle_min
+sol = hierarchical_clustering(people, mappy, gare_type_pers, depots, 20, nb_buses, metric)
+println(sol)
+pl = plot_terminus(loc, depots, gare)
+p_hierarchical_clustering = plot_clusters(sol, loc, pl, true)
+
+metric = angle_max
+sol = hierarchical_clustering(people, mappy, gare_type_pers, depots, 20, nb_buses, metric)
+println(sol)
+pl = plot_terminus(loc, depots, gare)
+p_hierarchical_clustering = plot_clusters(sol, loc, pl, true)
+
+buses = compute_solution(sol)
+println(buses)
+total_time = get_total_time.(buses)
+println(total_time)
+println(sum(total_time))
