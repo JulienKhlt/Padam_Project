@@ -69,7 +69,7 @@ function remove!(a, item)
    deleteat!(a, findall(x->x==item, a))
 end
 
-function get_nearby_solutions(buses, metric, people, map, length_max, marge_frontiere)
+function get_nearby_solutions(buses, metric, people, gare, depots, map, length_max, marge_frontiere)
    """
    INPUT : buses = liste de bus (type Bus) qui forment une solution
             marge_frontiere = fraction qui définit l'épaisseur de la frontière
@@ -83,29 +83,29 @@ function get_nearby_solutions(buses, metric, people, map, length_max, marge_fron
    new_sol = [] # liste contenant des listes de Bus
    for i in 1:length(sol_buses) # pour chaque bus de la solution
       current_bus = sol_buses[i]
-      current_points = current_bus.stops
+      current_points = current_bus.stops[2:end-1]
       frontier_stops = [] # liste des points du cluster qui sont en gros à la frontière
-      center_stop = argmin([1/length(current_points) * sum([solution.map[m, n] for m in current_points]) for n in current_points])
-      furthest_stop = argmax([solution.map[k, center_stop] for k in current_points])
-      dist_center = marge_frontiere * solution.map[furthest_stop, center_stop]
+      center_stop = argmin([1/length(current_points) * sum([map[m, n] for m in current_points]) for n in current_points])
+      furthest_stop = argmax([map[k, center_stop] for k in current_points])
+      dist_center = marge_frontiere * map[furthest_stop, center_stop]
       for j in current_points
-         if solution.map[j, center_stop] > dist_center
+         if map[j, center_stop] > dist_center
             push!(frontier_stops, j)
          end
       end
 
       for p in frontier_stops
          nearby_sol = copy(sol_buses) # liste de bus de type Bus
-         j = closest_bus(p, buses, i, metric, map)
+         j = closest_bus(p, buses, i, metric, gare, depots, map)
          if length(nearby_sol[j].people) < length_max
             add_point_bus!(nearby_sol[j], p, people)
             remove_point_bus!(nearby_sol[i], p)
             rearrangement_2opt(nearby_sol[j], map)
             # Il reste à vérifier la time window pour les people du bus :
-            ordered_people = Array{Person}[] # VOIR SI ON PEUT PAS OPTIMISER CA
+            ordered_people = [] # VOIR SI ON PEUT PAS OPTIMISER CA
             for k in nearby_sol[j].stops
                for person in nearby_sol[j].people
-                  if person.start_point == stop
+                  if person.start_point == k
                      push!(ordered_people, person)
                   end
                end
@@ -115,8 +115,8 @@ function get_nearby_solutions(buses, metric, people, map, length_max, marge_fron
             t = ordered_people[1].start_time
             time_at_stops = [t]
             check_bus = true
-            for k in 2:length(nearby_sol[j])
-               t += map[nearby_sol[j].stops[k-1], nearby_sol[j].stops[k]] #temps auquel on arrive à cet arrêt
+            for k in 2:length(nearby_sol[j].people)
+               t += map[ordered_people[k-1].start_point, ordered_people[k].start_point] #temps auquel on arrive à cet arrêt
                if t > ordered_people[k].end_time # si le bus arrive trop tard à l'arrêt, le trajet n'est pas admissible
                   check_bus = false
                elseif t < ordered_people[k].start_time # si le bus arrive en avance, il doit attendre la personne
@@ -133,7 +133,7 @@ function get_nearby_solutions(buses, metric, people, map, length_max, marge_fron
    return new_sol
 end
 
-function metaheuristique_tabou(s0, maxIter, maxTabuSize, metric, people, map, length_max, marge_frontiere)
+function metaheuristique_tabou(s0, maxIter, maxTabuSize, metric, people, gare, depots, map, length_max, marge_frontiere)
    """
    INPUT : s0 = liste de bus qui fonctionne
            maxIter,
@@ -151,27 +151,38 @@ function metaheuristique_tabou(s0, maxIter, maxTabuSize, metric, people, map, le
    push!(tabuList, s0)
    k=0
    while (k<maxIter)
-      sNeighborhood = get_nearby_solutions(bestCandidate, metric, people, map, length_max, marge_frontiere)
-      bestCandidate = sNeighborhood[1]
-      for sCandidate in sNeighborhood
-         if !(sCandidate in tabuList)
-            #if compute_solution(sCandidate) > compute_solution(bestCandidate)
-            #if sum([compute_total_time(b, s0.map) for b in compute_solution(sCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) # pb de comparaison ici : c'est pas la bonne fonction
-            if sum([bus.time for bus in sCandidate]) > sum([bus.time for bus in bestCandidate])
-               bestCandidate = sCandidate
+      sNeighborhood = get_nearby_solutions(bestCandidate, metric, people, gare, depots, map, length_max, marge_frontiere)
+      if length(sNeighborhood)>0
+         println("On a tenté ", length(sNeighborhood), " nouvelles solutions")
+         bestCandidate = sNeighborhood[1]
+         for sCandidate in sNeighborhood
+            if !(sCandidate in tabuList)
+               #if compute_solution(sCandidate) > compute_solution(bestCandidate)
+               #if sum([compute_total_time(b, s0.map) for b in compute_solution(sCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) # pb de comparaison ici : c'est pas la bonne fonction
+               if sum([bus.time for bus in sCandidate]) > sum([bus.time for bus in bestCandidate])
+                  bestCandidate = sCandidate
+               end
             end
          end
+         #if sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(sBest)])
+         #if compute_solution(bestCandidate) > compute_solution(sBest)
+         # println(typeof(bestCandidate))
+         # println(typeof(bestCandidate[1]))
+         # println(bestCandidate[1].time)
+         # println([bus.time for bus in bestCandidate])
+         # println(sum([bus.time for bus in bestCandidate]))
+         # printl(sum([bus.time for bus in sBest]))
+         if sum([(bus.time[end]-bus.time[2]) for bus in bestCandidate]) > sum([(bus.time[end]-bus.time[2]) for bus in sBest])
+            sBest = bestCandidate
+         end
+         push!(tabuList, bestCandidate)
+         if (length(tabuList) > maxTabuSize)
+            deleteat!(tabuList, 1)
+         end
+         k+=1
+      else
+         k=maxIter
       end
-      #if sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(sBest)])
-      #if compute_solution(bestCandidate) > compute_solution(sBest)
-      if sum([bus.time for bus in bestCandidate]) > sum([bus.time for bus in sBest])
-         sBest = bestCandidate
-      end
-      push!(tabuList, bestCandidate)
-      if (length(tabuList) > maxTabuSize)
-         deleteat!(tabuList, 1)
-      end
-      k+=1
    end
    return sBest
 end

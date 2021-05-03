@@ -10,42 +10,19 @@ include("../Cluster.jl")
 include("../Resolution.jl")
 include("../distance.jl")
 
-mappy = parser("Data/large.csv")
-people, gare, depots = build_people("Data/people_large.csv")
+mappy = parser("Data/Instances Tests/large.csv")
+people, gare, depots = build_people("Data/Instances Tests/people_large.csv")
 length_max = 20
 sol = creation_cluster(people, gare, depots, mappy, length_max)
-buses = compute_solution(sol) # liste des bus de la solutin de type Bus
+buses = compute_solution(sol) # liste des bus de la solutoin de type Bus
+time1 = sum([(bus.time[end]-bus.time[2]) for bus in buses])
+
+#println(b.stops for b in buses)
 
 maxIter = 3
 maxTabuSize = 3
-margeFrontiere = 9/10
+margeFrontiere = 8/10
 metric = dist_clo
-autre_sol = metaheuristique_tabou(buses, maxIter, maxTabuSize, metric, people, mappy, length_max, margeFrontiere)
-println("les deux solutions sont égales", sum([compute_total_time(b, sol.map) for b in compute_solution(sol)]) == sum([compute_total_time(b, autre_sol.map) for b in compute_solution(autre_sol)]))
+autre_sol = metaheuristique_tabou(buses, maxIter, maxTabuSize, metric, people, gare, depots, mappy, length_max, margeFrontiere)
 
-"""message d'erreur : 
-
-ERROR: LoadError: ArgumentError: reducing over an empty collection is not allowed
-Stacktrace:
- [1] _empty_reduce_error() at .\reduce.jl:212
- [2] reduce_empty(::Function, ::Type) at .\reduce.jl:222
- [3] mapreduce_empty(::typeof(identity), ::Function, ::Type) at .\reduce.jl:247
- [4] _mapreduce(::typeof(identity), ::typeof(min), ::IndexLinear, ::Array{Float64,1}) at .\reduce.jl:301
- [5] _mapreduce_dim at .\reducedim.jl:312 [inlined]
- [6] #mapreduce#584 at .\reducedim.jl:307 [inlined]
- [7] mapreduce at .\reducedim.jl:307 [inlined]
- [8] _minimum at .\reducedim.jl:657 [inlined]
- [9] _minimum at .\reducedim.jl:656 [inlined]
- [10] #minimum#593 at .\reducedim.jl:652 [inlined]
- [11] minimum at .\reducedim.jl:652 [inlined]
- [12] dist_clo(::Int64, ::SparseMatrixCSC{Float64,Int64}, ::Cluster) at d:\Louise\Cours\2A_Ponts\Projet_departement\Padam_Project\Cluster.jl:53   
- [13] (::var"#196#198"{Int64,Solution})(::Cluster) at .\none:0
- [14] collect_to!(::Array{Float64,1}, ::Base.Generator{Array{Cluster,1},var"#196#198"{Int64,Solution}}, ::Int64, ::Int64) at .\generator.jl:47
- [15] collect_to_with_first!(::Array{Float64,1}, ::Float64, ::Base.Generator{Array{Cluster,1},var"#196#198"{Int64,Solution}}, ::Int64) at .\array.jl:646
- [16] collect(::Base.Generator{Array{Cluster,1},var"#196#198"{Int64,Solution}}) at .\array.jl:627
- [17] closest(::Int64, ::Solution, ::Bool) at d:\Louise\Cours\2A_Ponts\Projet_departement\Padam_Project\Cluster.jl:73
- [18] closest(::Int64, ::Solution) at d:\Louise\Cours\2A_Ponts\Projet_departement\Padam_Project\Cluster.jl:67
- [19] get_nearby_solutions(::Solution, ::Float64) at d:\Louise\Cours\2A_Ponts\Projet_departement\Padam_Project\Resolution.jl:55
- [20] metaheuristique_tabou(::Solution, ::Int64, ::Int64, ::Float64) at d:\Louise\Cours\2A_Ponts\Projet_departement\Padam_Project\Resolution.jl:88
- [21] top-level scope at d:\Louise\Cours\2A_Ponts\Projet_departement\Padam_Project\test_meta.jl:18
-in expression starting at d:\Louise\Cours\2A_Ponts\Projet_departement\Padam_Project\test_meta.jl:18"""
+time2 = sum([(bus.time[end]-bus.time[2]) for bus in autre_sol])
