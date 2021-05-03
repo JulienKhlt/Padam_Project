@@ -94,11 +94,51 @@ def algo_pseudo_en_ligne(file_directory::string)
     # Il faut un processus pour l'initialisation des premiers clients
     # - les forcer à etre dans des cluster différents ?
     # - essayer de les mettre dans un/plusieurs bus comme pour le cas général ??
+    # Au fond ça n'a pas bcp d'importance car ils seront déplacé dès que l'insertion rapide ne marche plus
+    # Il faut surtout trouver une manière rapide de le faire
 
     #insertion_time = 0
     #times = []
-    while(true) # Ou for people in
+    LENGHT_MAX = 40
+    nb_clients = length(clients)
+    nb_drivers = length(depots)
+    nb_seats = nb_drivers * LENGHT_MAX
+    nb_passengers = 0
+    passengers = Person[]
 
+    #Initialisation pour le premier client à faire
+    client_id = 1
+
+    # Boucle pour les clients suivants
+    while((nb_passengers < nb_seats) && (client_id <= nb_clients))
+        new_client = clients[client_id]
+        solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client)
+        if success_fast_insertion
+            nb_passengers += 1
+        else
+            # on génère des clusters temporaires à partir de zéro
+            temporary_passengers = deepcopy(passengers)
+            push!(temporary_passengers, new_client)
+            temporary_solution = hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX)
+            # à remplacer par une autre fonction qui me calcule une solution
+
+
+            # Ou bien
+            # solution_feasibility = check_cluster(cluster, map, all_people, length_max) ??
+            # ou créer un truc hybride qui reprend ça et compute solution
+            try
+                buses = compute_solution(solution) # Est ce que ça écrase l'ancien bus ?
+                # A vérifier : empecher les clusters de dépasser le nb max de places dans un bus
+                # On essaie de faire un TSPTW
+                # Si ça passe, on enregistre la solution et on intègre le client à la liste des passagers
+                nb_passengers += 1
+                solution = temporary_solution
+                passengers = temporary_passengers
+            catch
+                println("Le client ",client_id, " partant du point ", new_client.start_point, "n'a pas pu être inséré dans l'EDT.")
+            end
+        end
         #push!(times, insertion_time)
+        client_id += 1 # On passe au client suivant
     end
 end
