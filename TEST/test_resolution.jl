@@ -11,9 +11,18 @@ include("../Resolution.jl")
 include("../borne_inf.jl")
 include("../distance.jl")
 
-mappy = parser("Data/large.csv")
+file_directory = "/home/julien/Padam_Project/Data/uniform/"
+client_file_name = joinpath(file_directory, "customer_requests.csv")
+driver_file_name = joinpath(file_directory, "driver_shifts.csv")
+map_file_name = joinpath(file_directory, "mTSP_matrix.csv")
+gamma_file_name = joinpath(file_directory, "gammas.csv")
+node_coordinates_file_name = joinpath(file_directory, "node_coordinates.csv")
 
-people, gare, depots = build_people("Data/people_large.csv")
+people = build_people_real_file_only_client(client_file_name, driver_file_name, map_file_name, gamma_file_name, false)
+depots, gare = build_drivers_and_gare(driver_file_name)
+gare = Person(start_point=gare, start_time=depots[1].end_time, end_time=depots[1].end_time)
+map, n = parser_real_file_symetry(map_file_name)
+
 
 ###########################################################
 #                       BORNE INF                         #
@@ -37,21 +46,21 @@ people, gare, depots = build_people("Data/people_large.csv")
 #                    Creation Clusters                    #
 ###########################################################
 
-sol = creation_cluster(people, gare, depots, mappy, 20, false)
+# sol = creation_cluster(people, gare, depots, map, 20, false)
+# buses = compute_solution(sol)
+# println(buses)
+# total_time = get_total_time.(buses)
+# println(total_time)
+# println(sum(total_time))
+
+sol = creation_cluster_with_metric(people, gare, depots, map, dist_clo, 20)
 buses = compute_solution(sol)
 println(buses)
 total_time = get_total_time.(buses)
 println(total_time)
 println(sum(total_time))
 
-sol = creation_cluster_with_metric(people, gare, depots, mappy, dist_clo, 20)
-buses = compute_solution(sol)
-println(buses)
-total_time = get_total_time.(buses)
-println(total_time)
-println(sum(total_time))
-
-sol = creation_cluster_with_metric(people, gare, depots, mappy, dist_mean, 20)
+sol = creation_cluster_with_metric(people, gare, depots, map, dist_mean, 20)
 buses = compute_solution(sol)
 println(buses)
 total_time = get_total_time.(buses)
@@ -59,14 +68,14 @@ println(total_time)
 println(sum(total_time))
 
 
-sol = creation_cluster_with_metric(people, gare, depots, mappy, dist_src_dst, 20)
+sol = creation_cluster_with_metric(people, gare, depots, map, dist_src_dst, 20)
 buses = compute_solution(sol)
 println(buses)
 total_time = get_total_time.(buses)
 println(total_time)
 println(sum(total_time))
 
-sol = creation_cluster_with_metric(people, gare, depots, mappy, 0.5*dist_src_dst+0.5*dist_clo, 20)
+sol = creation_cluster_with_metric(people, gare, depots, map, 0.5*dist_src_dst+0.5*dist_clo, 20)
 buses = compute_solution(sol)
 println(buses)
 total_time = get_total_time.(buses)

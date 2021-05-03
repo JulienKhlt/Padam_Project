@@ -1,4 +1,4 @@
 min_duration;max_duration;gamma_value
-0;300;2.9
-301;600;2.1
-601;'inf’;1.7
+0;300;29
+301;600;21
+601;'inf’;17
