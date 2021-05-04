@@ -9,9 +9,10 @@ using LightGraphs
 include("Parsers.jl")
 include("Resolution.jl")
 include("plot.jl")
+include("Bus.jl")
 
 
-def read_data(file_directory::string)
+function read_data(file_directory::string)
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
 
@@ -38,28 +39,32 @@ def read_data(file_directory::string)
 end
 
 
-def fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Person)
+function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Person, metric)
     """
-    INPUT
-    solution::Solution la solution actuelle
-    new_client::Person qu'on veut insérer
+    INPUT : solution::Solution donne la solution actuelle
+            new_client::Person qu'on veut insérer
+            buses : vecteur donnant les bus actuels
+            metric : la distance qu'on utilise entre un client et un cluster
 
     Insertion rapide : on essaye d'insérer directement le client dans un cluster
     Quels choix stratégiques pour l'insertion ? Avec une métrique ou juste dans l'ordre des clusters ?
     Pour l'instant, on fait dans l'ordre des clusters par simplicité, on raffinera après si on a le temps
 
-    OUTPUT
-    solution::Solution la solution actuelle
-    success::Bool true si on a réussi à insérer le client dans un cluster
+    OUTPUT : solution::Solution la nouvelle solution 
+             buses : vecteur des nouveaux bus
+             success::Bool true si on a réussi à insérer le client dans un cluster
     """
+    index_modified_cluster = 0
     try
-        index_modified_cluster, dist = best_cluster(point, sol, size, metric, check = false)
+        index_modified_cluster, dist = best_cluster(new_client.start_point, solution, 1, metric, true)
     catch
         success = false
         return solution, buses, success
     end
     success = true
-    add_point!(point, cluster, size)
+    add_point!(new_client.start_point, solution.clusters[index_modified_cluster], 1)
+    add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.people)
+    rearrangement_2opt(buses[index_modified_cluster], solution.map)
     # success = false
     # index_cluster = 1
     # while(!success && (index_cluster <= length(solution.clusters)))
@@ -77,7 +82,7 @@ def fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Person)
 end
 
 
-def algo_pseudo_en_ligne(file_directory::string)
+function algo_pseudo_en_ligne(file_directory::string)
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
     OUTPUT : pas encore défini
