@@ -55,29 +55,22 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
              success::Bool true si on a réussi à insérer le client dans un cluster
     """
     index_modified_cluster = 0
+    size = 1 # vérifier avec Julien que c'est bien ce qu'il faut faire avec size
+    for p in solution.all_people 
+        if p.start_point == new_client.start_point # vérifier que all_people correspond aux gens dans la solution et est de type Person
+            size += 1
+        end
+    end
     try
-        index_modified_cluster, dist = best_cluster(new_client.start_point, solution, 1, metric, true)
+        index_modified_cluster, dist = best_cluster(new_client.start_point, solution, size, metric, true)
     catch
         success = false
         return solution, buses, success
     end
     success = true
-    add_point!(new_client.start_point, solution.clusters[index_modified_cluster], 1)
+    add_point!(new_client.start_point, solution.clusters[index_modified_cluster], size)
     add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.people)
     rearrangement_2opt(buses[index_modified_cluster], solution.map)
-    # success = false
-    # index_cluster = 1
-    # while(!success && (index_cluster <= length(solution.clusters)))
-    #     current_cluster = solution.clusters[i]
-    #     nb_passagers = current_cluster.len
-    #     # d'abord on vérifie qu'il y a de la place dans le bus correspondant
-    #     if (nb_passagers < solution.length_max) # inégalité stricte parce qu'il faut pouvoir rajouter un passager
-    #         #try TSPTW
-    #         current_points = current_cluster.points
-    #         people = concatenate(current_points, )
-    #         resolution_tsptw(nb_people, people, solution.map, M) # try catch
-    #         #success =
-    #     index_cluster = +1
     return solution, buses, success
 end
 
