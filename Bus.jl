@@ -66,7 +66,7 @@ function rearrangement_2opt(bus, map)
 end
 
 function admissible_bus(bus, map, length_max)
-    if lenght(bus.people) > length_max
+    if length(bus.people) > length_max
         return false
     end
      # Il reste à vérifier la time window pour les people du bus :

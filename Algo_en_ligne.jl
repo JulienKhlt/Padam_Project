@@ -5,9 +5,11 @@ pyplot()
 
 using SparseArrays
 using LightGraphs
+using IJulia
 
 include("Parsers.jl")
 include("Resolution_clusters.jl")
+include("Resolution.jl")
 include("plot.jl")
 include("Bus.jl")
 
@@ -54,16 +56,19 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
              success::Bool true si on a réussi à insérer le client dans un cluster
     """
     index_modified_cluster = 0
-    indices_best_clusters = closest(new_client.start_point, solution, metric, true)
+    indices_best_clusters = closest(new_client.start_point, solution, metric, true)[1]
+    println(typeof(indices_best_clusters))
     success = false
     i = 1
     while !success && i<length(indices_best_clusters)+1
         index_modified_cluster = indices_best_clusters[i]
+        println(typeof(index_modified_cluster), index_modified_cluster)
         add_point!(new_client.start_point, solution.clusters[index_modified_cluster], 1)
-        add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.people)
+        add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.all_people)
         rearrangement_2opt(buses[index_modified_cluster], solution.map)
         success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
         i += 1
+        println("cluster", i)
     end
     # index_modified_cluster, dist = best_cluster(new_client.start_point, solution, 1, metric, false)
     # success = true
@@ -75,15 +80,21 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
 end
 
 
-function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_max est une fonction
+function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max, anim = false)#angle_max est une fonction
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
+
+    Rq : on appelle "client" une personne qui fait une demande de réservation
+    et "passengers " désignent la liste des personnes qui ont été acceptés.
+
     OUTPUT : pas encore défini
     times un vecteur de temps (pour l'instant ça n'y est pas)
     Un EDT des bus ? Un version imprimée de solution ?
     """
     # Import data
+    println("Importation des données...")
     loc, depots, gare, map, n, clients = read_data(file_directory)
+    println("Fin de l'importation des données.")
     #check data makes sens
     #pl = plot_bus_stops(loc, depots, gare)
 
@@ -95,6 +106,9 @@ function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_
     # Au fond ça n'a pas bcp d'importance car ils seront déplacé dès que l'insertion rapide ne marche plus
     # Il faut surtout trouver une manière rapide de le faire
 
+    if anim
+        pl = plot_terminus(loc, depots, gare)
+    end
     #insertion_time = 0
     #times = []
     LENGHT_MAX = 20
@@ -102,7 +116,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_
     nb_drivers = length(depots)
     nb_seats = nb_drivers * LENGHT_MAX
     nb_passengers = 0
-    passengers = Person[]
+    passengers = Vector{Person}()
 
 
 
@@ -110,20 +124,29 @@ function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_
     client_id = 1
     new_client = clients[client_id]
     push!(passengers, new_client)
-    solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric)
+    solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric_cluster)
     buses = compute_solution(solution)
-
+    if anim
+        p_hierarchical_clustering = plot_bus_routes_copy(buses, loc, pl)|> IJulia.display
+    end
+    client_id = 2
+    remember = 1
     # Boucle pour les clients suivants
-    while((nb_passengers < nb_seats) && (client_id <= nb_clients))
+    while ((nb_passengers < nb_seats) && (client_id <= nb_clients))
+        println("Client ",client_id)
         new_client = clients[client_id]
-        solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric)
+        success_fast_insertion = false
+        #solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric_point)
+        #println("fast instertion ", success_fast_insertion)
         if success_fast_insertion
+            push!(passengers, new_client)
             nb_passengers += 1
         else
             # on génère des clusters temporaires à partir de zéro
             temporary_passengers = deepcopy(passengers)
             push!(temporary_passengers, new_client)
-            temporary_solution = hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric)
+            temporary_solution = creation_cluster_with_metric(temporary_passengers,  gare, depots, map, metric_point, LENGHT_MAX)
+            #hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX, nb_drivers,  metric_cluster)
 
             # Ou bien
             # solution_feasibility = check_cluster(cluster, map, all_people, length_max) ??
@@ -136,12 +159,22 @@ function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_
                 solution = temporary_solution
                 passengers = temporary_passengers
                 buses = temporary_buses
+                remember = client_id
+                println("Le client ",client_id, " partant du point ", new_client.start_point, " a été inséré suite à un recalcul des clusters")
             catch
-                println("Le client ",client_id, " partant du point ", new_client.start_point, "n'a pas pu être inséré dans l'EDT.")
+                println("Le client ",client_id, " partant du point ", new_client.start_point, " n'a pas pu être inséré dans l'EDT.")
             end
         end
         #push!(times, insertion_time)
+        if anim
+            p_hierarchical_clustering = plot_bus_routes_copy(buses, loc, pl)|> IJulia.display
+        end
         client_id += 1 # On passe au client suivant
     end
+    print("Dernier client ", remember)
+    print("Nb clients ", length(passengers))
     return solution
 end
+
+file_dir = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/Villages/"
+algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max,true)

@@ -1,6 +1,6 @@
 using Plots
 pyplot()
-
+include("Bus.jl")
 
 "Ajoute un cluster à un graphique (points reliés par des lignes)"
 function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop}, pl::Plots.Plot, index::Int = 0)
@@ -23,7 +23,8 @@ function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop},
     plot!(
         pl, latitude_list, longitude_list,
         linewidth = 1,
-        label = label
+        label = label,
+        legend=:outertopleft
     )
 end
 
@@ -46,7 +47,8 @@ function scatter_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_st
         markersize = 4,
         markeralpha = 1,
         markerstrokealpha = 0,
-        label = label
+        label = label,
+        legend = :outertopleft
     )
 end
 
@@ -65,8 +67,24 @@ function plot_clusters(solution::Solution, localisations::Vector{Bus_stop}, pl::
 end
 
 
+"Affiche le graphique des clusters présents dans une solution sans modifier le graphe initial"
+function plot_clusters_copy(solution::Solution, localisations::Vector{Bus_stop}, pl::Plots.Plot, scatter = true)::Plots.Plot
+    pl_copy = deepcopy(pl)
+    for (index, cluster) in enumerate(solution.clusters)
+        if scatter
+            scatter_cluster_to_plot!(cluster, localisations, pl_copy, index)
+        else
+            add_cluster_to_plot!(cluster, localisations, pl_copy, index)
+        end
+    end
+    plot!(title = "Carte des clusters")
+    return pl_copy
+end
+
+
+
 "Affiche les dépots et la gare"
-function plot_terminus(localisations::Vector{Bus_stop}, drivers::Vector{Person}, gare::Person, pl = nothing)::Plots.Plot
+function plot_terminus(loc::Vector{Bus_stop}, drivers::Vector{Person}, gare::Person, pl = nothing)::Plots.Plot
     index_gare = gare.start_point
     if pl == nothing
         pl = plot()
@@ -76,7 +94,7 @@ function plot_terminus(localisations::Vector{Bus_stop}, drivers::Vector{Person},
     latitude_list = []
     longitude_list = []
     for driver in drivers
-        loc_depot = localisations[driver.start_point]
+        loc_depot = loc[driver.start_point]
         push!(latitude_list, loc_depot.latitude)
         push!(longitude_list, loc_depot.longitude)
     end
@@ -88,6 +106,7 @@ function plot_terminus(localisations::Vector{Bus_stop}, drivers::Vector{Person},
         markercolor = :green,
         markerstrokealpha = 0,
         label = "depots",
+        legend=:outertopleft
     )
 
     #On affiche la gare
@@ -100,6 +119,7 @@ function plot_terminus(localisations::Vector{Bus_stop}, drivers::Vector{Person},
         markercolor = :red,
         markerstrokealpha = 0,
         label = "gare",
+        legend = :outertopleft
     )
     plot!(title = "Carte des arrets de bus")
     return pl
@@ -128,8 +148,47 @@ function plot_bus_stops(localisations::Vector{Bus_stop}, drivers::Vector{Person}
         pl, latitude_list, longitude_list,
         marker = (:circle, 3, 0.7, "black"),
         label = "arrets de bus",
+        legend=:outertopleft
     )
     plot_terminus(localisations, drivers, gare, pl)
     plot!(title = "Carte des arrets de bus")
     return pl
+end
+
+function add_bus_route_to_plot!(bus::Bus, localisations::Vector{Bus_stop}, pl::Plots.Plot, index::Int = 0)
+    latitude_list = []
+    longitude_list = []
+    for i in 1:length(bus.stops)
+        bus_stop = localisations[bus.stops[i]]
+        push!(latitude_list, bus_stop.latitude)
+        push!(longitude_list, bus_stop.longitude)
+    end
+    if index == 0
+        label = "bus"
+    else
+        label = "bus n°" * string(index)
+    end
+    plot!(
+        pl, latitude_list, longitude_list,
+        linewidth = 1,
+        label = label,
+        legend =:outertopleft,
+    )
+end
+
+function plot_bus_routes(buses::Vector{Bus},localisations::Vector{Bus_stop}, pl::Plots.Plot)
+    for (index, bus) in enumerate(buses)
+        add_bus_route_to_plot!(bus, localisations, pl, index)
+    end
+    plot!(title = "Carte des bus")
+    return pl
+end
+
+function plot_bus_routes_copy(buses::Vector{Bus},localisations::Vector{Bus_stop}, pl::Plots.Plot)
+    pl_copy = deepcopy(pl)
+    for (index, bus) in enumerate(buses)
+        add_bus_route_to_plot!(bus, localisations, pl_copy, index)
+    end
+    plot!(title = "Carte des bus")
+    return pl_copy
 end
