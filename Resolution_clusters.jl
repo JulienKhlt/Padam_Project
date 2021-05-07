@@ -1,4 +1,5 @@
 include("Cluster.jl")
+include("distance_cluster.jl")
 
 function concat(c1, c2, map, depots)
    """
