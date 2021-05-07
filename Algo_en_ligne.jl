@@ -54,13 +54,15 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
              success::Bool true si on a réussi à insérer le client dans un cluster
     """
     index_modified_cluster = 0
-    indices_best_clusters = closest(new_client.start_point, solution, metric, true)
+    indices_best_clusters = closest(new_client.start_point, solution, metric, true)[1]
+    println(typeof(indices_best_clusters))
     success = false
     i = 1
     while !success && i<length(indices_best_clusters)+1
         index_modified_cluster = indices_best_clusters[i]
+        println(typeof(index_modified_cluster), index_modified_cluster)
         add_point!(new_client.start_point, solution.clusters[index_modified_cluster], 1)
-        add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.people)
+        add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.all_people)
         rearrangement_2opt(buses[index_modified_cluster], solution.map)
         success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
         i += 1
@@ -75,7 +77,7 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
 end
 
 
-function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_max est une fonction
+function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_clo, metric_cluster = angle_max)#angle_max est une fonction
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
     OUTPUT : pas encore défini
@@ -83,7 +85,9 @@ function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_
     Un EDT des bus ? Un version imprimée de solution ?
     """
     # Import data
+    println("Importation des données...")
     loc, depots, gare, map, n, clients = read_data(file_directory)
+    println("Fin de l'importation des données.")
     #check data makes sens
     #pl = plot_bus_stops(loc, depots, gare)
 
@@ -102,7 +106,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_
     nb_drivers = length(depots)
     nb_seats = nb_drivers * LENGHT_MAX
     nb_passengers = 0
-    passengers = Person[]
+    passengers = Vector{Person}()
 
 
 
@@ -110,20 +114,21 @@ function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_
     client_id = 1
     new_client = clients[client_id]
     push!(passengers, new_client)
-    solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric)
+    solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric_cluster)
     buses = compute_solution(solution)
-
+    client_id = 2
     # Boucle pour les clients suivants
     while((nb_passengers < nb_seats) && (client_id <= nb_clients))
+        println("Client ",client_id)
         new_client = clients[client_id]
-        solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric)
+        solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric_point)
         if success_fast_insertion
             nb_passengers += 1
         else
             # on génère des clusters temporaires à partir de zéro
             temporary_passengers = deepcopy(passengers)
             push!(temporary_passengers, new_client)
-            temporary_solution = hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric)
+            temporary_solution = hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX, nb_drivers,  metric_cluster)
 
             # Ou bien
             # solution_feasibility = check_cluster(cluster, map, all_people, length_max) ??
@@ -136,6 +141,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_
                 solution = temporary_solution
                 passengers = temporary_passengers
                 buses = temporary_buses
+                println("Le client ",client_id, " partant du point ", new_client.start_point, "a été inséré suite à un recalcul des clusters")
             catch
                 println("Le client ",client_id, " partant du point ", new_client.start_point, "n'a pas pu être inséré dans l'EDT.")
             end
