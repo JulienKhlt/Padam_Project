@@ -1,39 +1,38 @@
 using Flux
-using Flux: Data.DataLoader
-using Flux: onehotbatch, onecold, crossentropy
-using Flux: @epochs
 using Statistics
+using Tracker
+using Plots; pyplot()
 
 # Load the data
-x_train = [[1 1 1 1; 1 1 1 1; 1 1 1 1; 1 1 1 1], [1 1 1 1; 1 1 1 1; 1 1 1 1; 1 1 1 1]]
-x_train = Flux.flatten(x_train)
-y_train = [1, 1]
-train_data = DataLoader(x_train, y_train, batchsize=1)
+X = rand(100, 100)
+Y = zeros(2, 100)
+for i in 1:2
+    for j in 1:100
+        Y[i, j] = i*0.5*sum(X[:, j])
+    end
+end
+println(Y)
+println(typeof(Y))
+# Xd = reduce(hcat,X)
+# Yd = reduce(hcat,Y)
+data = [(X,Y)]
+# data = zip(X, Y)
 
-model = Chain(
-    # 4x4 => 2x2
-    # Conv((3, 3), 32=>32, pad=1, stride=2, relu),
-    
-    # Average pooling on each width x height feature map
-    # GlobalMeanPool(),
-    # flatten,
-    
-    Dense(2, 1),
-    softmax)
+mod = Dense(100, 2)
+# Initial mapping
+Yd_0 = Tracker.data(mod(X))
+# Setting up loss/cost function
+loss(x, y) = mean((mod(x).-y).^2)
+# Selecting parameter optimization method
+opt = ADAM(0.01, (0.99, 0.999))
+# Extracting parameters from model
+par = params(mod);
 
-# Getting predictions
-ŷ = model(x_train)
-# Decoding predictions
-ŷ = onecold(ŷ)
-println("Prediction of first image: $(ŷ[1])")
-
-accuracy(ŷ, y) = mean(onecold(ŷ) .== onecold(y))
-loss(x, y) = Flux.crossentropy(model(x), y)
-# learning rate
-lr = 0.1
-opt = Descent(lr)
-ps = Flux.params(model)
-
-number_epochs = 10
-@epochs number_epochs Flux.train!(loss, ps, train_data, opt)
-accuracy(model(x_train), y_train)
+nE = 1_000
+for i in 1:nE
+    Flux.train!(loss, par, data, opt)
+end
+# Final mapping
+Yd_nE = Tracker.data(mod(X))
+println(Y)
+println(Yd_nE)
