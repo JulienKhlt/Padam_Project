@@ -46,7 +46,10 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
             buses : vecteur donnant les bus actuels
             metric : la distance qu'on utilise entre un client et un cluster
 
-    OUTPUT : solution::Solution la nouvelle solution 
+    Insertion rapide : on essaye d'insérer directement le client dans un cluster
+    Quels choix stratégiques pour l'insertion ? Avec une métrique
+
+    OUTPUT : solution::Solution la nouvelle solution
              buses : vecteur des nouveaux bus
              success::Bool true si on a réussi à insérer le client dans un cluster
     """
@@ -72,7 +75,7 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
 end
 
 
-function algo_pseudo_en_ligne(file_directory::string)
+function algo_pseudo_en_ligne(file_directory::string, metric = angle_max)#angle_max est une fonction
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
     OUTPUT : pas encore défini
@@ -94,15 +97,21 @@ function algo_pseudo_en_ligne(file_directory::string)
 
     #insertion_time = 0
     #times = []
-    LENGHT_MAX = 40
+    LENGHT_MAX = 20
     nb_clients = length(clients)
     nb_drivers = length(depots)
     nb_seats = nb_drivers * LENGHT_MAX
     nb_passengers = 0
     passengers = Person[]
 
+
+
     #Initialisation pour le premier client à faire
     client_id = 1
+    new_client = clients[client_id]
+    push!(passengers, new_client)
+    solution =hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric)
+    buses = compute_solution(solution)
 
     # Boucle pour les clients suivants
     while((nb_passengers < nb_seats) && (client_id <= nb_clients))
@@ -114,21 +123,19 @@ function algo_pseudo_en_ligne(file_directory::string)
             # on génère des clusters temporaires à partir de zéro
             temporary_passengers = deepcopy(passengers)
             push!(temporary_passengers, new_client)
-            temporary_solution = hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX)
-            # à remplacer par une autre fonction qui me calcule une solution
-
+            temporary_solution = hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric)
 
             # Ou bien
             # solution_feasibility = check_cluster(cluster, map, all_people, length_max) ??
             # ou créer un truc hybride qui reprend ça et compute solution
             try
-                buses = compute_solution(solution) # Est ce que ça écrase l'ancien bus ?
-                # A vérifier : empecher les clusters de dépasser le nb max de places dans un bus
+                temporary_buses = compute_solution(temporary_solution)
                 # On essaie de faire un TSPTW
                 # Si ça passe, on enregistre la solution et on intègre le client à la liste des passagers
                 nb_passengers += 1
                 solution = temporary_solution
                 passengers = temporary_passengers
+                buses = temporary_buses
             catch
                 println("Le client ",client_id, " partant du point ", new_client.start_point, "n'a pas pu être inséré dans l'EDT.")
             end
@@ -136,4 +143,5 @@ function algo_pseudo_en_ligne(file_directory::string)
         #push!(times, insertion_time)
         client_id += 1 # On passe au client suivant
     end
+    return solution
 end
