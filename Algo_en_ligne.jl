@@ -33,6 +33,8 @@ function read_data(file_directory::String)
     map_file_name = joinpath(file_directory, "mTSP_matrix.csv")
     gamma_file_name = joinpath(file_directory, "gammas.csv")
     node_coordinates_file_name = joinpath(file_directory, "node_coordinates.csv")
+    client_file_name = joinpath(file_directory, "customer_requests.csv")
+
     loc = build_localisations(node_coordinates_file_name)
     depots, gare = build_drivers_and_gare(driver_file_name)
     map,n = parser_real_file(map_file_name)
@@ -127,7 +129,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric_cluster)
     buses = compute_solution(solution)
     if anim
-        p_hierarchical_clustering = plot_bus_routes_copy(buses, loc, pl)|> IJulia.display
+        p_hierarchical_clustering_bus = plot_points_bus_routes_copy(solution, buses, loc, pl)|> IJulia.display
     end
     client_id = 2
     remember = 1
@@ -167,7 +169,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
         end
         #push!(times, insertion_time)
         if anim
-            p_hierarchical_clustering = plot_bus_routes_copy(buses, loc, pl)|> IJulia.display
+            p_hierarchical_clustering = plot_points_bus_routes_copy(solution, buses, loc, pl)|> IJulia.display
         end
         client_id += 1 # On passe au client suivant
     end
@@ -176,5 +178,5 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     return solution
 end
 
-file_dir = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/Villages/"
+file_dir = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/Line/"
 algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max,true)
