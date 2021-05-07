@@ -1,5 +1,5 @@
 using PyPlot: pygui
-pygui(true)
+#pygui(true)
 using Plots
 pyplot()
 
@@ -7,12 +7,12 @@ using SparseArrays
 using LightGraphs
 
 include("Parsers.jl")
-include("Resolution.jl")
+include("Resolution_clusters.jl")
 include("plot.jl")
 include("Bus.jl")
 
 
-function read_data(file_directory::string)
+function read_data(file_directory::String)
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
 
@@ -70,7 +70,7 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
 end
 
 
-function algo_pseudo_en_ligne(file_directory::string, metric = angle_max)#angle_max est une fonction
+function algo_pseudo_en_ligne(file_directory::String, metric = angle_max)#angle_max est une fonction
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
     OUTPUT : pas encore défini
@@ -80,7 +80,7 @@ function algo_pseudo_en_ligne(file_directory::string, metric = angle_max)#angle_
     # Import data
     loc, depots, gare, map, n, clients = read_data(file_directory)
     #check data makes sens
-    pl = plot_bus_stops(loc, depots, gare)
+    #pl = plot_bus_stops(loc, depots, gare)
 
     # Avoir une version ligne de commande où on insère les clients à la main ? bof c'est pénible pour les tests
     # il faut stocker les grandeurs intéressantes (temps d'insertion, ect )
@@ -105,13 +105,13 @@ function algo_pseudo_en_ligne(file_directory::string, metric = angle_max)#angle_
     client_id = 1
     new_client = clients[client_id]
     push!(passengers, new_client)
-    solution =hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric)
+    solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric)
     buses = compute_solution(solution)
 
     # Boucle pour les clients suivants
     while((nb_passengers < nb_seats) && (client_id <= nb_clients))
         new_client = clients[client_id]
-        solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client)
+        solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric)
         if success_fast_insertion
             nb_passengers += 1
         else
