@@ -106,17 +106,6 @@ function build_people_real_file(client_file_name, driver_file_name, map_file_nam
     train_departure = convert_time_str_int(split(data_driver[2], ";")[5])
     people = init_people(train_index, train_departure)
 
-    nb_driver =  length(data_driver)-1
-
-    for i in 1:nb_driver
-        driver = split(data_driver[1+i], ";")
-        start_point = parse(Int, driver[2])
-        end_point = parse(Int, driver[3])
-        start_time =  convert_time_str_int(driver[4])
-        end_time =  start_time
-        add_person(start_point, start_time, end_time, people)
-    end
-
     nb_client =  length(data_client)-1
 
     for i in 1:nb_client
@@ -203,8 +192,8 @@ function build_drivers_and_gare(driver_file_name)
     for i in 1:nb_drivers
         driver = split(data_driver[1+i], ";")
         depot = parse(Int, driver[2])
-        start_time =  convert_time_str_int(driver[4])
-        end_time =  convert_time_str_int(driver[5])
+        start_time = convert_time_str_int(driver[4])
+        end_time = convert_time_str_int(driver[5])
         add_person(depot, start_time, end_time, drivers)
     end
 
