@@ -18,6 +18,16 @@ function concat(c1, c2, map, depots)
    return Cluster(list, c1.gare, depots[1], length(list))
 end
 
+function dist_cluster_depot(map, list, depot)
+   """
+   INPUT : map
+           list = vecteur des start_point des clients appartenant à un même cluster
+           depot = un dépôt donné (type Person)
+   OUTPUT : distance minimale entre le dépôt et le cluster (minimum des distances avec tous les points du cluster)
+   """
+   return minimum([map[depot.start_point, i] for i in list])
+end
+
 function closest_depot_list(map, list, depots)
    """
    INPUT : map
