@@ -8,6 +8,7 @@ using LightGraphs
 
 include("Parsers.jl")
 include("Resolution_clusters.jl")
+include("Resolution.jl")
 include("plot.jl")
 include("Bus.jl")
 
@@ -66,6 +67,7 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
         rearrangement_2opt(buses[index_modified_cluster], solution.map)
         success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
         i += 1
+        println("cluster", i)
     end
     # index_modified_cluster, dist = best_cluster(new_client.start_point, solution, 1, metric, false)
     # success = true
@@ -77,7 +79,7 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
 end
 
 
-function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_clo, metric_cluster = angle_max)#angle_max est une fonction
+function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max)#angle_max est une fonction
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
     OUTPUT : pas encore défini
@@ -117,18 +119,23 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_clo, m
     solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric_cluster)
     buses = compute_solution(solution)
     client_id = 2
+    remember = 1
     # Boucle pour les clients suivants
     while((nb_passengers < nb_seats) && (client_id <= nb_clients))
         println("Client ",client_id)
         new_client = clients[client_id]
-        solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric_point)
+        success_fast_insertion = false
+        #solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric_point)
+        println("fast instertion ", success_fast_insertion)
         if success_fast_insertion
+            push!(passengers, new_client)
             nb_passengers += 1
         else
             # on génère des clusters temporaires à partir de zéro
             temporary_passengers = deepcopy(passengers)
             push!(temporary_passengers, new_client)
-            temporary_solution = hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX, nb_drivers,  metric_cluster)
+            temporary_solution = creation_cluster_with_metric(temporary_passengers,  gare, depots, map, metric_point, LENGHT_MAX)
+            #hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX, nb_drivers,  metric_cluster)
 
             # Ou bien
             # solution_feasibility = check_cluster(cluster, map, all_people, length_max) ??
@@ -141,6 +148,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_clo, m
                 solution = temporary_solution
                 passengers = temporary_passengers
                 buses = temporary_buses
+                remember = client_id
                 println("Le client ",client_id, " partant du point ", new_client.start_point, "a été inséré suite à un recalcul des clusters")
             catch
                 println("Le client ",client_id, " partant du point ", new_client.start_point, "n'a pas pu être inséré dans l'EDT.")
@@ -149,5 +157,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_clo, m
         #push!(times, insertion_time)
         client_id += 1 # On passe au client suivant
     end
+    print("Dernier client ", remember)
+    print("Nb clients ", length(passengers))
     return solution
 end
