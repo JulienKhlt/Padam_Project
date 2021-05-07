@@ -65,3 +65,31 @@ function rearrangement_2opt(bus, map)
     end
 end
 
+function admissible_bus(bus, map, length_max)
+    if lenght(bus.people) > length_max
+        return false
+    end
+     # Il reste à vérifier la time window pour les people du bus :
+     ordered_people = [] # VOIR SI ON PEUT PAS OPTIMISER CA
+     for k in bus.stops
+        for person in bus.people
+           if person.start_point == k
+              push!(ordered_people, person)
+           end
+        end
+     end
+     # remarque : est ce que si plusieurs personnes sont au même arrêt elles ont le même star_time ?
+     # si non, il faut encore trier ordered_people
+     t = ordered_people[1].start_time
+     time_at_stops = [t]
+     check_bus = true
+     for k in 2:length(bus.people)
+        t += map[ordered_people[k-1].start_point, ordered_people[k].start_point] #temps auquel on arrive à cet arrêt
+        if t > ordered_people[k].end_time # si le bus arrive trop tard à l'arrêt, le trajet n'est pas admissible
+           check_bus = false
+        elseif t < ordered_people[k].start_time # si le bus arrive en avance, il doit attendre la personne
+           t = ordered_people[k].start_time
+        end
+     end
+     return check_bus
+end
