@@ -46,10 +46,6 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
             buses : vecteur donnant les bus actuels
             metric : la distance qu'on utilise entre un client et un cluster
 
-    Insertion rapide : on essaye d'insérer directement le client dans un cluster
-    Quels choix stratégiques pour l'insertion ? Avec une métrique ou juste dans l'ordre des clusters ?
-    Pour l'instant, on fait dans l'ordre des clusters par simplicité, on raffinera après si on a le temps
-
     OUTPUT : solution::Solution la nouvelle solution 
              buses : vecteur des nouveaux bus
              success::Bool true si on a réussi à insérer le client dans un cluster
@@ -61,16 +57,12 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
             size += 1
         end
     end
-    try
-        index_modified_cluster, dist = best_cluster(new_client.start_point, solution, size, metric, true)
-    catch
-        success = false
-        return solution, buses, success
-    end
+    index_modified_cluster, dist = best_cluster(new_client.start_point, solution, size, metric, false)
     success = true
     add_point!(new_client.start_point, solution.clusters[index_modified_cluster], size)
     add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.people)
     rearrangement_2opt(buses[index_modified_cluster], solution.map)
+    success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
     return solution, buses, success
 end
 
