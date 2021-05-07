@@ -54,18 +54,23 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
              success::Bool true si on a réussi à insérer le client dans un cluster
     """
     index_modified_cluster = 0
-    size = 1 # vérifier avec Julien que c'est bien ce qu'il faut faire avec size
-    for p in solution.all_people
-        if p.start_point == new_client.start_point # vérifier que all_people correspond aux gens dans la solution et est de type Person
-            size += 1
-        end
+    indices_best_clusters = closest(new_client.start_point, solution, metric, true)
+    success = false
+    i = 1
+    while !success && i<length(indices_best_clusters)+1
+        index_modified_cluster = indices_best_clusters[i]
+        add_point!(new_client.start_point, solution.clusters[index_modified_cluster], 1)
+        add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.people)
+        rearrangement_2opt(buses[index_modified_cluster], solution.map)
+        success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
+        i += 1
     end
-    index_modified_cluster, dist = best_cluster(new_client.start_point, solution, size, metric, false)
-    success = true
-    add_point!(new_client.start_point, solution.clusters[index_modified_cluster], size)
-    add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.people)
-    rearrangement_2opt(buses[index_modified_cluster], solution.map)
-    success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
+    # index_modified_cluster, dist = best_cluster(new_client.start_point, solution, 1, metric, false)
+    # success = true
+    # add_point!(new_client.start_point, solution.clusters[index_modified_cluster], 1)
+    # add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.people)
+    # rearrangement_2opt(buses[index_modified_cluster], solution.map)
+    # success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
     return solution, buses, success
 end
 
