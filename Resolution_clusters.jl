@@ -18,6 +18,18 @@ function concat(c1, c2, map, depots)
    return Cluster(list, c1.gare, depots[1], length(list))
 end
 
+function closest_depot_list(map, list, depots)
+   """
+   INPUT : map
+           list = vecteur des start_point des clients appartenant à un même cluster
+           depots = vecteur avec tous les depots (type Person)
+   OUTPUT : liste ordonnée des dépôts par distance au du cluster (type Person)
+   """
+    index = sort!([(dist_cluster_depot(map,list,k), k) for k in depots], by=x->x[1])
+    depot_order = unique([index[i][2] for i in 1:length(index)])
+    return depot_order
+end
+
 function buses_allowed(depots)
    """
    Input : liste des dépots
