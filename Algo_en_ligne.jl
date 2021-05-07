@@ -82,6 +82,10 @@ end
 function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max)#angle_max est une fonction
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
+
+    Rq : on appelle "client" une personne qui fait une demande de réservation
+    et "passengers " désignent la liste des personnes qui ont été acceptés.
+
     OUTPUT : pas encore défini
     times un vecteur de temps (pour l'instant ça n'y est pas)
     Un EDT des bus ? Un version imprimée de solution ?
@@ -126,7 +130,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
         new_client = clients[client_id]
         success_fast_insertion = false
         #solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric_point)
-        println("fast instertion ", success_fast_insertion)
+        #println("fast instertion ", success_fast_insertion)
         if success_fast_insertion
             push!(passengers, new_client)
             nb_passengers += 1
@@ -149,9 +153,9 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
                 passengers = temporary_passengers
                 buses = temporary_buses
                 remember = client_id
-                println("Le client ",client_id, " partant du point ", new_client.start_point, "a été inséré suite à un recalcul des clusters")
+                println("Le client ",client_id, " partant du point ", new_client.start_point, " a été inséré suite à un recalcul des clusters")
             catch
-                println("Le client ",client_id, " partant du point ", new_client.start_point, "n'a pas pu être inséré dans l'EDT.")
+                println("Le client ",client_id, " partant du point ", new_client.start_point, " n'a pas pu être inséré dans l'EDT.")
             end
         end
         #push!(times, insertion_time)
