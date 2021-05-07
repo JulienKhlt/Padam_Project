@@ -39,15 +39,7 @@ function different_sol(sol1,sol2)
    return !boo
 end
 
-function dist_cluster_depot(map, list, depot)
-   """
-   INPUT : map
-           list = vecteur des start_point des clients appartenant à un même cluster
-           depot = un dépôt donné (type Person)
-   OUTPUT : distance minimale entre le dépôt et le cluster (minimum des distances avec tous les points du cluster)
-   """
-   return minimum([map[depot.start_point, i] for i in list])
-end
+
 
 function closest_depot(map, list, depots)
    """
@@ -58,18 +50,6 @@ function closest_depot(map, list, depots)
    """
     index = argmin([dist_cluster_depot(map,list,k) for k in depots])
     return depots[index]
-end
-
-function closest_depot_list(map, list, depots)
-   """
-   INPUT : map
-           list = vecteur des start_point des clients appartenant à un même cluster
-           depots = vecteur avec tous les depots (type Person)
-   OUTPUT : liste ordonnée des dépôts par distance au du cluster (type Person)
-   """
-    index = sort!([(dist_cluster_depot(map,list,k), k) for k in depots], by=x->x[1])
-    depot_order = unique([index[i][2] for i in 1:length(index)])
-    return depot_order
 end
 
 
