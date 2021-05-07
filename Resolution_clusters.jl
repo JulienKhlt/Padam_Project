@@ -18,6 +18,10 @@ function concat(c1, c2, map, depots)
 end
 
 function buses_allowed(depots)
+   """
+   Input : liste des dépots
+   Output : nombre de bus dans le i-eme dépôt, start_point du ieme depot
+   """
    nb_bus_allowed = []
    index_corres = []
    for driver in depots
@@ -39,7 +43,9 @@ function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses
            gare = gare (type Person)
            depots = vector de dépôts (type Person)
            length_max = capacité maximale d'un bus
-   OUTPUT : calcul d'une Solution par clustering hierarchique (fusion de clusters avec distance de ward)
+           nb_buses = nombre de bus
+           metric = distance utilisée pour le calcul des clusters
+   OUTPUT : calcul d'une Solution par clustering hierarchique (fusion de clusters avec distance metric)
    """
    train_index = gare.start_point
    all_people = people[:]
@@ -51,7 +57,7 @@ function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses
       add_cluster!(cluster, sol)
    end
    boo = true
-   while boo && length(sol.clusters) > nb_buses #tant qu'on peut fusionner des clusters de façon à ce qu'ils restent admissibles pour le TSPTW
+   while boo && length(sol.clusters) > nb_buses #tant qu'on peut fusionner des clusters de façon à ce qu'ils soient en nombre supérieur au nombre de bus
       i = 1
       admissible = false
       distances = min_dist_tot(sol, metric)
@@ -67,7 +73,7 @@ function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses
             remove_cluster!(min(i_min,j_min), sol)
             add_cluster!(aggregate,sol)
          else
-            if sol.clusters[j_min].len != length_max && sol.clusters[i_min].len != length_max
+            if sol.clusters[j_min].len != length_max && sol.clusters[i_min].len != length_max #dans ce cas on ajoute les points du cluster le plus petit dans le cluster le plus grand
                if sol.clusters[i_min].len > sol.clusters[j_min].len
                   table = sort!([(metric(sol.clusters[i_min],Cluster([j],gare, depots[1], 1), map), j) for j in sol.clusters[j_min].points], by=x->x[1])
                   new_len = length_max-sol.clusters[i_min].len
@@ -79,7 +85,7 @@ function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses
                   remove_cluster!(min(i_min,j_min), sol)
                   add_cluster!(aggregate,sol)
                   add_cluster!(difference,sol)
-               else
+               else #dans ce cas on ajoute les points du cluster le plus petit dans le cluster le plus grand
                   table = sort!([(metric(Cluster([i],gare, depots[1], 1), sol.clusters[j_min], map), i) for i in sol.clusters[i_min].points], by=x->x[1])
                   new_len = length_max-sol.clusters[j_min].len
                   new_cluster = Cluster([table[i][2] for i in 1:new_len], gare, depots[1], new_len)
