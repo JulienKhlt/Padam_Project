@@ -133,3 +133,32 @@ function plot_bus_stops(localisations::Vector{Bus_stop}, drivers::Vector{Person}
     plot!(title = "Carte des arrets de bus")
     return pl
 end
+
+function add_bus_route_to_plot!(bus::Bus, localisations::Vector{Bus_stop}, pl::Plots.Plot, index::Int = 0)
+    loc_depot = localisations[cluster.depot.start_point]
+    latitude_list = [loc_depot.latitude]
+    longitude_list = [loc_depot.longitude]
+    for i in 1:length(bus.stops)
+        bus_stop = localisations[bus.stops[i]]
+        push!(latitude_list, bus_stop.latitude)
+        push!(longitude_list, bus_stop.longitude)
+    end
+    if index == 0
+        label = "bus"
+    else
+        label = "bus n°" * string(index)
+    end
+    plot!(
+        pl, latitude_list, longitude_list,
+        linewidth = 1,
+        label = label
+    )
+end
+
+function plot_bus_routes(buses::Vector{Bus},localisations::Vector{Bus_stop}, pl::Plots.Plot)
+    for (index, bus) in enumerate(buses)
+        add_bus_route_to_plot!(bus, localisations, pl, index)
+    end
+    plot!(title = "Carte des bus")
+    return pl
+end
