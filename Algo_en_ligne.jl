@@ -5,6 +5,7 @@ pyplot()
 
 using SparseArrays
 using LightGraphs
+using IJulia
 
 include("Parsers.jl")
 include("Resolution_clusters.jl")
@@ -79,7 +80,7 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
 end
 
 
-function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max)#angle_max est une fonction
+function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max, anim = false)#angle_max est une fonction
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
 
@@ -105,6 +106,9 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     # Au fond ça n'a pas bcp d'importance car ils seront déplacé dès que l'insertion rapide ne marche plus
     # Il faut surtout trouver une manière rapide de le faire
 
+    if anim
+        pl = plot_terminus(loc, depots, gare)
+    end
     #insertion_time = 0
     #times = []
     LENGHT_MAX = 20
@@ -122,10 +126,13 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     push!(passengers, new_client)
     solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric_cluster)
     buses = compute_solution(solution)
+    if anim
+        p_hierarchical_clustering = plot_bus_routes_copy(buses, loc, pl)|> IJulia.display
+    end
     client_id = 2
     remember = 1
     # Boucle pour les clients suivants
-    while((nb_passengers < nb_seats) && (client_id <= nb_clients))
+    while ((nb_passengers < nb_seats) && (client_id <= nb_clients))
         println("Client ",client_id)
         new_client = clients[client_id]
         success_fast_insertion = false
@@ -159,9 +166,15 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
             end
         end
         #push!(times, insertion_time)
+        if anim
+            p_hierarchical_clustering = plot_bus_routes_copy(buses, loc, pl)|> IJulia.display
+        end
         client_id += 1 # On passe au client suivant
     end
     print("Dernier client ", remember)
     print("Nb clients ", length(passengers))
     return solution
 end
+
+file_dir = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/Villages/"
+algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max,true)
