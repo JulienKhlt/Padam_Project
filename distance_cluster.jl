@@ -64,7 +64,7 @@ function angle_min(S1,S2, map)
    """
    S1_points = S1.points
    S2_points = S2.points
-   angle_min = minimum([acos((map[S1.gare.start_point,j]^2+map[i,S1.gare.start_point]^2 -map[i,j]^2)/(2*map[S1.gare.start_point,j]*map[i,S1.gare.start_point])) for i in S1_points for j in S2_points])
+   angle_min = minimum([acos(max(-1,min(1,(map[S1.gare.start_point,j]^2+map[i,S1.gare.start_point]^2 -map[i,j]^2)/(2*map[S1.gare.start_point,j]*map[i,S1.gare.start_point])))) for i in S1_points for j in S2_points])
    return angle_min
 end
 
@@ -76,7 +76,7 @@ function angle_max(S1,S2, map)
    """
    S1_points = S1.points
    S2_points = S2.points
-   angle_min = maximum([acos((map[S1.gare.start_point,j]^2+map[i,S1.gare.start_point]^2 -map[i,j]^2)/(2*map[S1.gare.start_point,j]*map[i,S1.gare.start_point])) for i in S1_points for j in S2_points])
+   angle_min =  maximum([acos(max(-1,min(1,(map[S1.gare.start_point,j]^2+map[i,S1.gare.start_point]^2 -map[i,j]^2)/(2*map[S1.gare.start_point,j]*map[i,S1.gare.start_point])))) for i in S1_points for j in S2_points])
    return angle_min
 end
 
