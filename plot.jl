@@ -3,7 +3,8 @@ pyplot()
 include("Bus.jl")
 Plots.scalefontsizes()
 Plots.scalefontsizes(1)
-colors = ["tomato1","mediumpurple", "springgreen2", "royalblue4", "lightskyblue", "yellow", "teal", "goldenrod1", "brown2", "brown2", "brown2", "brown2", "brown2", "brown2" ]
+colors = palette(:tab20)
+#colors = ["tomato1","mediumpurple", "springgreen2", "royalblue4", "lightskyblue", "yellow", "teal", "goldenrod1", "brown2", "brown2", "brown2", "brown2", "brown2", "brown2" ]
 
 "Ajoute un cluster à un graphique (points reliés par des lignes)"
 function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop}, pl::Plots.Plot, index::Int = 0)
@@ -76,7 +77,7 @@ function scatter_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_st
         color = colors,
         markerstrokealpha = 0,
         label = label,
-        legend = :outertopleft
+        legend = false,# :outertopleft
     )
 end
 
@@ -221,7 +222,7 @@ function add_bus_route_to_plot!(bus::Bus, localisations::Vector{Bus_stop}, pl::P
         pl, latitude_list, longitude_list,
         linewidth = 1,
         label = label,
-        legend =:outertopleft,
+        legend = false,#:outertopleft,
         color=color,
     )
 end
@@ -266,7 +267,7 @@ function plot_points_bus_routes_copy(depots, gare, clients_refuses, solution, bu
              pl_new, latitude_list, longitude_list,
              marker = (:circle, 3, 0.7, "black"),
              label = "clients refusés",
-             legend=:outertopleft
+             legend=false#:outertopleft
          )
      end
      plot!(title = "Carte des clusters et des bus")
