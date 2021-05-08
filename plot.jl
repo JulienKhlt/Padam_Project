@@ -1,6 +1,8 @@
 using Plots
 pyplot()
 include("Bus.jl")
+Plots.scalefontsizes()
+Plots.scalefontsizes(1)
 colors = ["tomato1","mediumpurple", "springgreen2", "royalblue4", "lightskyblue", "yellow", "teal", "goldenrod1", "brown2", "brown2", "brown2", "brown2", "brown2", "brown2" ]
 
 "Ajoute un cluster à un graphique (points reliés par des lignes)"
@@ -243,16 +245,30 @@ end
 
 
 
-function plot_points_bus_routes_copy(solution, buses::Vector{Bus},localisations::Vector{Bus_stop}, pl::Plots.Plot)
-     pl_copy = deepcopy(pl)
+function plot_points_bus_routes_copy(depots, gare, clients_refuses, solution, buses::Vector{Bus},localisations::Vector{Bus_stop})
+     pl_new = plot_terminus(localisations, depots, gare)
      for (index, cluster) in enumerate(solution.clusters)
          color = colors[index]
-         scatter_cluster_to_plot!(cluster, localisations, pl_copy, color, index)
+         scatter_cluster_to_plot!(cluster, localisations, pl_new, color, index)
      end
      for (index, bus) in enumerate(buses)
          color = colors[index]
-         add_bus_route_to_plot!(bus, localisations, pl_copy, color, index)
+         add_bus_route_to_plot!(bus, localisations, pl_new, color, index)
+     end
+     latitude_list = []
+     longitude_list = []
+     for (index, person) in enumerate(clients_refuses)
+         push!(latitude_list,  localisations[person.start_point].latitude)
+         push!(longitude_list,  localisations[person.start_point].longitude)
+     end
+     if length(clients_refuses) != 0
+         scatter!(
+             pl_new, latitude_list, longitude_list,
+             marker = (:circle, 3, 0.7, "black"),
+             label = "clients refusés",
+             legend=:outertopleft
+         )
      end
      plot!(title = "Carte des clusters et des bus")
-     return pl_copy
+     return pl_new
  end

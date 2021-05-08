@@ -82,7 +82,7 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
 end
 
 
-function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max, anim = false)#angle_max est une fonction
+function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max, construction_clusters_by_points = true, anim = false)#angle_max est une fonction
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
 
@@ -108,9 +108,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     # Au fond ça n'a pas bcp d'importance car ils seront déplacé dès que l'insertion rapide ne marche plus
     # Il faut surtout trouver une manière rapide de le faire
 
-    if anim
-        pl = plot_terminus(loc, depots, gare)
-    end
+    clients_refuses = []
     #insertion_time = 0
     #times = []
     LENGHT_MAX = 20
@@ -126,10 +124,15 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     client_id = 1
     new_client = clients[client_id]
     push!(passengers, new_client)
-    solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric_cluster)
+    if construction_clusters_by_points
+        solution = creation_cluster_with_metric(passengers,  gare, depots, map, metric_point, LENGHT_MAX)
+    else
+        solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric_cluster)
+    end
     buses = compute_solution(solution)
     if anim
-        p_hierarchical_clustering_bus = plot_points_bus_routes_copy(solution, buses, loc, pl)|> IJulia.display
+        pl = plot()
+        p_hierarchical_clustering_bus = plot_points_bus_routes_copy(depots, gare, clients_refuses, solution, buses,loc)|> IJulia.display
     end
     client_id = 2
     remember = 1
@@ -147,8 +150,11 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
             # on génère des clusters temporaires à partir de zéro
             temporary_passengers = deepcopy(passengers)
             push!(temporary_passengers, new_client)
-            temporary_solution = creation_cluster_with_metric(temporary_passengers,  gare, depots, map, metric_point, LENGHT_MAX)
-            #hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX, nb_drivers,  metric_cluster)
+            if construction_clusters_by_points
+                temporary_solution = creation_cluster_with_metric(temporary_passengers,  gare, depots, map, metric_point, LENGHT_MAX)
+            else
+                temporary_solution = hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX, nb_drivers,  metric_cluster)
+            end
 
             # Ou bien
             # solution_feasibility = check_cluster(cluster, map, all_people, length_max) ??
@@ -165,11 +171,13 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
                 println("Le client ",client_id, " partant du point ", new_client.start_point, " a été inséré suite à un recalcul des clusters")
             catch
                 println("Le client ",client_id, " partant du point ", new_client.start_point, " n'a pas pu être inséré dans l'EDT.")
+                push!(clients_refuses, new_client)
+                print(clients_refuses)
             end
         end
         #push!(times, insertion_time)
         if anim
-            p_hierarchical_clustering = plot_points_bus_routes_copy(solution, buses, loc, pl)|> IJulia.display
+            p_hierarchical_clustering = plot_points_bus_routes_copy(depots, gare, clients_refuses, solution, buses, loc)|> IJulia.display
         end
         client_id += 1 # On passe au client suivant
     end
@@ -179,4 +187,4 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
 end
 
 file_dir = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/Line/"
-algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max,true)
+algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max,true, true)

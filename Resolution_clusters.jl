@@ -135,7 +135,6 @@ function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses
    for i in 1:length(cluster_far)
       cluster =  sol.clusters[cluster_far[i][2]]
       depot_list = closest_depot_list(map,cluster.points, depots)
-      print(depot_list)
       boo = false
       k=1
       while k <= length(depot_list) && !boo
