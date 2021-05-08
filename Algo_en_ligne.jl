@@ -82,7 +82,7 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
 end
 
 
-function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max, construction_clusters_by_points = true, anim = false)#angle_max est une fonction
+function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max, construction_clusters_by_points = true, anim = false, LENGTH_MAX=20)#angle_max est une fonction
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
 
@@ -111,7 +111,6 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     clients_refuses = []
     #insertion_time = 0
     #times = []
-    LENGHT_MAX = 20
     nb_clients = length(clients)
     nb_drivers = length(depots)
     nb_seats = nb_drivers * LENGHT_MAX
@@ -186,5 +185,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     return solution
 end
 
-file_dir = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/Line/"
-algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max,true, true)
+file_dir = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/Instance Padam/"
+algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max,false, true)
+
+#sur Instance Padam : contruction cluster/cluster avec argmax et 20 pers. par bus max->
