@@ -113,7 +113,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     #times = []
     nb_clients = length(clients)
     nb_drivers = length(depots)
-    nb_seats = nb_drivers * LENGHT_MAX
+    nb_seats = nb_drivers * LENGTH_MAX
     nb_passengers = 0
     passengers = Vector{Person}()
 
@@ -124,14 +124,16 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     new_client = clients[client_id]
     push!(passengers, new_client)
     if construction_clusters_by_points
-        solution = creation_cluster_with_metric(passengers,  gare, depots, map, metric_point, LENGHT_MAX)
+        solution = creation_cluster_with_metric(passengers,  gare, depots, map, metric_point, LENGTH_MAX)
     else
-        solution = hierarchical_clustering(passengers, map, gare, depots, LENGHT_MAX, nb_drivers, metric_cluster)
+        solution = hierarchical_clustering(passengers, map, gare, depots, LENGTH_MAX, nb_drivers, metric_cluster)
     end
     buses = compute_solution(solution)
     if anim
+        Anim = Plots.Animation()
         pl = plot()
         p_hierarchical_clustering_bus = plot_points_bus_routes_copy(depots, gare, clients_refuses, solution, buses,loc)|> IJulia.display
+        Plots.frame(Anim)
     end
     client_id = 2
     remember = 1
@@ -150,9 +152,9 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
             temporary_passengers = deepcopy(passengers)
             push!(temporary_passengers, new_client)
             if construction_clusters_by_points
-                temporary_solution = creation_cluster_with_metric(temporary_passengers,  gare, depots, map, metric_point, LENGHT_MAX)
+                temporary_solution = creation_cluster_with_metric(temporary_passengers, gare, depots, map, metric_point, LENGTH_MAX)
             else
-                temporary_solution = hierarchical_clustering(temporary_passengers, map, gare, depots, LENGHT_MAX, nb_drivers,  metric_cluster)
+                temporary_solution = hierarchical_clustering(temporary_passengers, map, gare, depots, LENGTH_MAX, nb_drivers,  metric_cluster)
             end
 
             # Ou bien
@@ -169,23 +171,47 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
                 remember = client_id
                 println("Le client ",client_id, " partant du point ", new_client.start_point, " a été inséré suite à un recalcul des clusters")
             catch
-                println("Le client ",client_id, " partant du point ", new_client.start_point, " n'a pas pu être inséré dans l'EDT.")
-                push!(clients_refuses, new_client)
-                print(clients_refuses)
+                if construction_clusters_by_points
+                    try 
+                        temporary_solution = creation_cluster_with_metric(temporary_passengers, gare, depots, map, metric_point, LENGTH_MAX, true)
+                        temporary_buses = compute_solution(temporary_solution)
+                        # On essaie de faire un TSPTW
+                        # Si ça passe, on enregistre la solution et on intègre le client à la liste des passagers
+                        nb_passengers += 1
+                        solution = temporary_solution
+                        passengers = temporary_passengers
+                        buses = temporary_buses
+                        remember = client_id
+                        println("Le client ",client_id, " partant du point ", new_client.start_point, " a été inséré suite à un recalcul des clusters amélioré")
+                    catch
+                        println("Le client ",client_id, " partant du point ", new_client.start_point, " n'a pas pu être inséré dans l'EDT.")
+                        push!(clients_refuses, new_client)
+                        println(clients_refuses)
+                    end
+                else
+                    println("Le client ",client_id, " partant du point ", new_client.start_point, " n'a pas pu être inséré dans l'EDT.")
+                    push!(clients_refuses, new_client)
+                    println(clients_refuses)
+                end
             end
         end
         #push!(times, insertion_time)
         if anim
             p_hierarchical_clustering = plot_points_bus_routes_copy(depots, gare, clients_refuses, solution, buses, loc)|> IJulia.display
+            Plots.frame(Anim)
         end
         client_id += 1 # On passe au client suivant
     end
-    print("Dernier client ", remember)
-    print("Nb clients ", length(passengers))
-    return solution
+    println("Dernier client ", remember)
+    println("Nb clients ", length(passengers))
+    if anim
+        gif(Anim, "anim.gif", fps = 5)
+    end
+    return solution, length(passengers)
 end
 
-file_dir = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/Instance Padam/"
-algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max,false, true)
+file_dir = "/home/julien/Padam_Project/Data/Instance Padam/"
+@time sol,nb = algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max+angle_min, true, true)
+println(sol)
 
 #sur Instance Padam : contruction cluster/cluster avec argmax et 20 pers. par bus max->

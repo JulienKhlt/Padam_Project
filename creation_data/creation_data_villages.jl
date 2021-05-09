@@ -62,4 +62,4 @@ function creation_point_villages(nb_point, nb_villages, len)
 
 end
 
-creation_data("Data/Villages/mTSP_matrix.csv", "Data/Villages/node_coordinates.csv","Data/Villages/customer_requests.csv", "Data/Villages/driver_shifts.csv", 5, [15,15,15,15,15], 50, 5, 3000)
+creation_data("Data/plots/mTSP_matrix.csv", "Data/plots/node_coordinates.csv","Data/plots/customer_requests.csv", "Data/plots/driver_shifts.csv", 1, [5], 5, 1, 100)

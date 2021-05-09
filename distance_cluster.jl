@@ -2,7 +2,7 @@ import Base.+, Base.*
 include("distance.jl")
 
 *(a::Float64, d::Function) = (sol) -> a*min_dist_tot(sol,d)
-+(c::Function, d::Function) = (sol) -> min_dist_tot(sol,d)+min_dist_tot(sol,c)
++(c::Function, d::Function) = (sol) -> min_dist_tot(sol,d) + min_dist_tot(sol,c)
 
 function ward_dist(S1,S2, map)
    """
