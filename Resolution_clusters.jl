@@ -36,7 +36,7 @@ function closest_depot_list(map, list, depots)
    OUTPUT : liste ordonnée des dépôts par distance au du cluster (type Person)
    """
     index = sort!([(dist_cluster_depot(map,list,k), k) for k in depots], by=x->x[1])
-    depot_order = unique([index[i][2] for i in 1:length(index)])
+    depot_order = [index[i][2] for i in 1:length(index)]
     return depot_order
 end
 
@@ -131,7 +131,7 @@ function hierarchical_clustering(people, map, gare, depots, length_max, nb_buses
 
    bus_list, index_class = buses_allowed(depots)
    list_max_dist = [maximum(map[gare.start_point, i] for i in j.points) for j in sol.clusters]
-   cluster_far = sort!([(list_max_dist[j], j) for j in 1:length(sol.clusters)], by=x->-x[1])
+   cluster_far = sort!([(list_max_dist[j], j) for j in 1:length(sol.clusters)], by=x->-x[1]) #sort clusters by distance between furthest point and train station
    for i in 1:length(cluster_far)
       cluster =  sol.clusters[cluster_far[i][2]]
       depot_list = closest_depot_list(map,cluster.points, depots)

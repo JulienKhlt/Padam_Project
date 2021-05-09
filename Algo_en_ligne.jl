@@ -82,7 +82,7 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
 end
 
 
-function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max, construction_clusters_by_points = true, anim = false, LENGTH_MAX=20)#angle_max est une fonction
+function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_dst, metric_cluster = angle_max, construction_clusters_by_points = true, anim = false, LENGHT_MAX=20)#angle_max est une fonction
     """
     INPUT : file_directory::string qui donne nom du dossier où sont rangés les fichiers de données
 
@@ -131,7 +131,6 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     buses = compute_solution(solution)
     if anim
         Anim = Plots.Animation()
-        pl = plot()
         p_hierarchical_clustering_bus = plot_points_bus_routes_copy(depots, gare, clients_refuses, solution, buses,loc)|> IJulia.display
         Plots.frame(Anim)
     end
