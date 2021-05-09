@@ -1,6 +1,10 @@
 using Plots
 pyplot()
 include("Bus.jl")
+Plots.scalefontsizes()
+Plots.scalefontsizes(1)
+colors = palette(:tab20)
+#colors = ["tomato1","mediumpurple", "springgreen2", "royalblue4", "lightskyblue", "yellow", "teal", "goldenrod1", "brown2", "brown2", "brown2", "brown2", "brown2", "brown2" ]
 
 "Ajoute un cluster à un graphique (points reliés par des lignes)"
 function add_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop}, pl::Plots.Plot, index::Int = 0)
@@ -49,6 +53,31 @@ function scatter_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_st
         markerstrokealpha = 0,
         label = label,
         legend = :outertopleft
+    )
+end
+
+"Ajoute un cluster à un graphique"
+function scatter_cluster_to_plot!(cluster::Cluster, localisations::Vector{Bus_stop}, pl::Plots.Plot, colors, index::Int = 0)
+    latitude_list = []
+    longitude_list = []
+    for i in 1:length(cluster.points)
+        bus_stop = localisations[cluster.points[i]]
+        push!(latitude_list, bus_stop.latitude)
+        push!(longitude_list, bus_stop.longitude)
+    end
+    if index == 0
+        label = "cluster"
+    else
+        label = "cluster n°" * string(index)
+    end
+    scatter!(
+        pl, latitude_list, longitude_list,
+        markersize = 4,
+        markeralpha = 1,
+        color = colors,
+        markerstrokealpha = 0,
+        label = label,
+        legend = false,# :outertopleft
     )
 end
 
@@ -176,6 +205,28 @@ function add_bus_route_to_plot!(bus::Bus, localisations::Vector{Bus_stop}, pl::P
     )
 end
 
+function add_bus_route_to_plot!(bus::Bus, localisations::Vector{Bus_stop}, pl::Plots.Plot, color,index::Int = 0)
+    latitude_list = []
+    longitude_list = []
+    for i in 1:length(bus.stops)
+        bus_stop = localisations[bus.stops[i]]
+        push!(latitude_list, bus_stop.latitude)
+        push!(longitude_list, bus_stop.longitude)
+    end
+    if index == 0
+        label = "bus"
+    else
+        label = "bus n°" * string(index)
+    end
+    plot!(
+        pl, latitude_list, longitude_list,
+        linewidth = 1,
+        label = label,
+        legend = false,#:outertopleft,
+        color=color,
+    )
+end
+
 function plot_bus_routes(buses::Vector{Bus},localisations::Vector{Bus_stop}, pl::Plots.Plot)
     for (index, bus) in enumerate(buses)
         add_bus_route_to_plot!(bus, localisations, pl, index)
@@ -192,3 +243,33 @@ function plot_bus_routes_copy(buses::Vector{Bus},localisations::Vector{Bus_stop}
     plot!(title = "Carte des bus")
     return pl_copy
 end
+
+
+
+function plot_points_bus_routes_copy(depots, gare, clients_refuses, solution, buses::Vector{Bus},localisations::Vector{Bus_stop})
+     pl_new = plot_terminus(localisations, depots, gare)
+     for (index, cluster) in enumerate(solution.clusters)
+         color = colors[index]
+         scatter_cluster_to_plot!(cluster, localisations, pl_new, color, index)
+     end
+     for (index, bus) in enumerate(buses)
+         color = colors[index]
+         add_bus_route_to_plot!(bus, localisations, pl_new, color, index)
+     end
+     latitude_list = []
+     longitude_list = []
+     for (index, person) in enumerate(clients_refuses)
+         push!(latitude_list,  localisations[person.start_point].latitude)
+         push!(longitude_list,  localisations[person.start_point].longitude)
+     end
+     if length(clients_refuses) != 0
+         scatter!(
+             pl_new, latitude_list, longitude_list,
+             marker = (:circle, 3, 0.7, "black"),
+             label = "clients refusés",
+             legend=false#:outertopleft
+         )
+     end
+     plot!(title = "Carte des clusters et des bus")
+     return pl_new
+ end
