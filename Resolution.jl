@@ -133,22 +133,12 @@ function metaheuristique_tabou(s0, maxIter, maxTabuSize, metric, people, gare, d
          bestCandidate = sNeighborhood[1]
          for sCandidate in sNeighborhood
             if !(sCandidate in tabuList)
-               #if compute_solution(sCandidate) > compute_solution(bestCandidate)
-               #if sum([compute_total_time(b, s0.map) for b in compute_solution(sCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) # pb de comparaison ici : c'est pas la bonne fonction
-               if sum([bus.time for bus in sCandidate]) > sum([bus.time for bus in bestCandidate])
+               if sum([bus.time[end]-bus.time[2] for bus in sCandidate]) < sum([bus.time[end]-bus.time[2] for bus in bestCandidate])
                   bestCandidate = sCandidate
                end
             end
          end
-         #if sum([compute_total_time(b, s0.map) for b in compute_solution(bestCandidate)]) > sum([compute_total_time(b, s0.map) for b in compute_solution(sBest)])
-         #if compute_solution(bestCandidate) > compute_solution(sBest)
-         # println(typeof(bestCandidate))
-         # println(typeof(bestCandidate[1]))
-         # println(bestCandidate[1].time)
-         # println([bus.time for bus in bestCandidate])
-         # println(sum([bus.time for bus in bestCandidate]))
-         # printl(sum([bus.time for bus in sBest]))
-         if sum([(bus.time[end]-bus.time[2]) for bus in bestCandidate]) > sum([(bus.time[end]-bus.time[2]) for bus in sBest])
+         if sum([(bus.time[end]-bus.time[2]) for bus in bestCandidate]) < sum([(bus.time[end]-bus.time[2]) for bus in sBest])
             sBest = bestCandidate
          end
          push!(tabuList, bestCandidate)
