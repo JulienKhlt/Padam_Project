@@ -55,4 +55,4 @@ function creation_point_uniform(nb_point, nb_bus, len)
     return points, drivers_index
 end
 
-creation_data("Data/uniform/mTSP_matrix.csv", "Data/uniform/node_coordinates.csv","Data/uniform/customer_requests.csv", "Data/uniform/driver_shifts.csv", 10, 2, 10, 1)
+creation_data("Data/uniform/mTSP_matrix.csv", "Data/uniform/node_coordinates.csv","Data/uniform/customer_requests.csv", "Data/uniform/driver_shifts.csv", 100, 10, 100, 1)

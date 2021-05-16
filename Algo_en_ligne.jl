@@ -210,7 +210,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
 end
 
 file_dir = "/home/julien/Padam_Project/Data/Instance Padam/"
-@time sol,nb = algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max, true, true)
+@time sol,nb = algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max, false, true)
 # println(sol)
 
 #sur Instance Padam : contruction cluster/cluster avec argmax et 20 pers. par bus max->
