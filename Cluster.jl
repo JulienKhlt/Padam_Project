@@ -113,9 +113,10 @@ function best_cluster(point, sol, size, metric, check = false)
     for c in id_clusters
         if sol.clusters[c].len + size < sol.length_max
             if check
-                cluster = Cluster(sol.clusters[c].points, sol.clusters[c].gare, sol.clusters[c].depot, sol.clusters[c].len)
+                cluster = deepcopy(sol.clusters[c])
                 add_point!(point, cluster, size)
-                if check_cluster(cluster, sol.map, sol.all_people, sol.length_max)
+                test = check_cluster(cluster, sol.map, sol.all_people, sol.length_max)
+                if test
                     return c, dist[c]
                 end
             else
@@ -181,10 +182,8 @@ function compute_solution(solution)
 end
 
 function check_cluster(cluster, map, all_people, length_max)
-    people = find_people(cluster, all_people)
-    people = new_people_cluster(people, cluster.gare, cluster.depot)
     try
-        resolution_tsptw(length(people), people, map, 10000)
+        creation_bus(cluster, 1, map, all_people)
         return true
     catch
         return false
