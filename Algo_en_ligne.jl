@@ -43,7 +43,7 @@ function read_data(file_directory::String)
 end
 
 
-function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Person, metric)
+function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Person, metric, LENGTH_MAX)
     """
     INPUT : solution::Solution donne la solution actuelle
             new_client::Person qu'on veut insérer
@@ -59,29 +59,21 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
     """
     index_modified_cluster = 0
     indices_best_clusters = closest(new_client.start_point, solution, metric, true)[1]
-    println(typeof(indices_best_clusters))
     success = false
     i = 1
     while !success && i<length(indices_best_clusters)+1
         index_modified_cluster = indices_best_clusters[i]
-        println(typeof(index_modified_cluster), index_modified_cluster)
         add_point!(new_client.start_point, solution.clusters[index_modified_cluster], 1)
         add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.all_people)
-        rearrangement_2opt(buses[index_modified_cluster], solution.map)
-        success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
-        if success == false
+        success1 = rearrangement_2opt(buses[index_modified_cluster], solution.map) # vaut true si on a réussi à réarranger le bus rapidement
+        success2 = admissible_bus(buses[index_modified_cluster], solution.map, LENGTH_MAX) # vaut true si on ne viole aucune contrainte
+        success = (success2==true && success1==true)
+        if !success
             remove_point_cluster!(solution.clusters[index_modified_cluster], new_client.start_point)
             remove_point_bus!(buses[index_modified_cluster], new_client.start_point)
         end
         i += 1
-        println("cluster", i)
     end
-    # index_modified_cluster, dist = best_cluster(new_client.start_point, solution, 1, metric, false)
-    # success = true
-    # add_point!(new_client.start_point, solution.clusters[index_modified_cluster], 1)
-    # add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.people)
-    # rearrangement_2opt(buses[index_modified_cluster], solution.map)
-    # success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
     return solution, buses, success
 end
 
@@ -103,6 +95,9 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     println("Fin de l'importation des données.")
     #check data makes sens
     #pl = plot_bus_stops(loc, depots, gare)
+
+    proportion_fast_insertion = 0
+
 
     # Avoir une version ligne de commande où on insère les clients à la main ? bof c'est pénible pour les tests
     # il faut stocker les grandeurs intéressantes (temps d'insertion, ect )
@@ -145,11 +140,13 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
         println("Client ",client_id)
         new_client = clients[client_id]
         success_fast_insertion = false
-        #solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric_point)
-        #println("fast instertion ", success_fast_insertion)
+        solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric_point, LENGTH_MAX)
+        println("fast instertion ", success_fast_insertion)
         if success_fast_insertion
             push!(passengers, new_client)
             nb_passengers += 1
+            proportion_fast_insertion += 1
+            println(proportion_fast_insertion/(client_id-1))
         else
             # on génère des clusters temporaires à partir de zéro
             temporary_passengers = deepcopy(passengers)

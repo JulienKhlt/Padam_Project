@@ -51,8 +51,10 @@ end
 function rearrangement_2opt(bus, map)
     """Fonction that reorganise the path of the bus, it's way faster that any other method but only give a local minima"""
     improvement = true
-    while improvement
+    nb_iter = 0
+    while improvement && nb_iter<100
         improvement = false
+        nb_iter += 1
         for i in 2:(length(bus.stops)-2)
             for j in i+1:length(bus.stops)-1
                 if map[bus.stops[i], bus.stops[i+1]] + map[bus.stops[j], bus.stops[j+1]] > map[bus.stops[i], bus.stops[j]] + map[bus.stops[i+1], bus.stops[j+1]]
@@ -63,10 +65,11 @@ function rearrangement_2opt(bus, map)
             end
         end
     end
+    return nb_iter < 100
 end
 
 function admissible_bus(bus, map, length_max)
-    if length(bus.people) > length_max
+    if length(bus.people) > length_max || length(bus.stops) > length_max
         return false
     end
      # Il reste à vérifier la time window pour les people du bus :
