@@ -69,6 +69,10 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
         add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.all_people)
         rearrangement_2opt(buses[index_modified_cluster], solution.map)
         success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
+        if success == false
+            remove_point!(new_client.start_point, solution.clusters[index_modified_cluster])
+            remove_point_bus!(buses[index_modified_cluster], new_client.start_point)
+        end
         i += 1
         println("cluster", i)
     end
