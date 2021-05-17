@@ -70,7 +70,7 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
         rearrangement_2opt(buses[index_modified_cluster], solution.map)
         success = admissible_bus(buses[index_modified_cluster], solution.map, solution.length_max)
         if success == false
-            remove_point!(new_client.start_point, solution.clusters[index_modified_cluster])
+            remove_point_cluster!(solution.clusters[index_modified_cluster], new_client.start_point)
             remove_point_bus!(buses[index_modified_cluster], new_client.start_point)
         end
         i += 1
@@ -213,7 +213,8 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     return solution, length(passengers)
 end
 
-file_dir = "/home/julien/Padam_Project/Data/Instance Padam/"
+#file_dir = "/home/julien/Padam_Project/Data/Instance Padam/"
+file_dir = "D:/Louise/Cours/2A_Ponts/Projet_departement/Padam_Project/Data/Instance Padam/"
 @time sol,nb = algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max, false, true)
 # println(sol)
 

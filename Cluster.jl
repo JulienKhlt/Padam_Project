@@ -42,6 +42,12 @@ function remove_point!(id_point, cluster::Cluster)
     deleteat!(cluster.points, id_point)
 end
 
+function remove_point_cluster!(cluster::Cluster, point)
+    """Fonction that remove a point from the cluster"""
+    remove!(cluster.points, point)
+    cluster.len -= 1
+end
+
 function add_cluster!(cluster, solution)
     push!(solution.clusters, cluster)
 end
