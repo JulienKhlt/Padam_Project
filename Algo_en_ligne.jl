@@ -63,14 +63,18 @@ function fast_insertion(solution::Solution, buses::Vector{Bus}, new_client::Pers
     i = 1
     while !success && i<length(indices_best_clusters)+1
         index_modified_cluster = indices_best_clusters[i]
-        add_point!(new_client.start_point, solution.clusters[index_modified_cluster], 1)
-        add_point_bus!(buses[index_modified_cluster], new_client.start_point, solution.all_people)
-        success1 = rearrangement_2opt(buses[index_modified_cluster], solution.map) # vaut true si on a réussi à réarranger le bus rapidement
-        success2 = admissible_bus(buses[index_modified_cluster], solution.map, LENGTH_MAX) # vaut true si on ne viole aucune contrainte
+        solution_add = deepcopy(solution)
+        buses_add = deepcopy(buses)
+        add_point_bus!(buses_add[index_modified_cluster], new_client.start_point, new_client)
+        success1 = rearrangement_2opt(buses_add[index_modified_cluster], solution.map) # vaut true si on a réussi à réarranger le bus rapidement
+        success2 = admissible_bus(buses_add[index_modified_cluster], solution.map, LENGTH_MAX) # vaut true si on ne viole aucune contrainte
         success = (success2==true && success1==true)
-        if !success
-            remove_point_cluster!(solution.clusters[index_modified_cluster], new_client.start_point)
-            remove_point_bus!(buses[index_modified_cluster], new_client.start_point)
+        if success #!success
+            """remove_point_cluster!(solution.clusters[index_modified_cluster], new_client.start_point)
+            remove_point_bus!(buses[index_modified_cluster], new_client.start_point)"""
+            add_point!(new_client.start_point, solution.clusters[index_modified_cluster], 1)
+            add_point_bus!(buses[index_modified_cluster], new_client.start_point, new_client)
+            rearrangement_2opt(buses[index_modified_cluster], solution.map)
         end
         i += 1
     end
@@ -122,6 +126,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     client_id = 1
     new_client = clients[client_id]
     push!(passengers, new_client)
+    nb_passengers += 1
     if construction_clusters_by_points
         solution = creation_cluster_with_metric(passengers,  gare, depots, map, metric_point, LENGTH_MAX)
     else
@@ -141,11 +146,12 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
         new_client = clients[client_id]
         success_fast_insertion = false
         solution, buses, success_fast_insertion = fast_insertion(solution, buses, new_client, metric_point, LENGTH_MAX)
-        println("fast instertion ", success_fast_insertion)
+        println("fast insertion ", success_fast_insertion)
         if success_fast_insertion
             push!(passengers, new_client)
             nb_passengers += 1
             proportion_fast_insertion += 1
+            remember = client_id
             println(proportion_fast_insertion/(client_id-1))
         else
             # on génère des clusters temporaires à partir de zéro
@@ -172,7 +178,7 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
                 println("Le client ",client_id, " partant du point ", new_client.start_point, " a été inséré suite à un recalcul des clusters")
             catch
                 if construction_clusters_by_points
-                    try 
+                    try
                         temporary_solution = creation_cluster_with_metric(temporary_passengers, gare, depots, map, metric_point, LENGTH_MAX, true)
                         temporary_buses = compute_solution(temporary_solution)
                         # On essaie de faire un TSPTW
@@ -210,9 +216,10 @@ function algo_pseudo_en_ligne(file_directory::String, metric_point = dist_src_ds
     return solution, length(passengers)
 end
 
-#file_dir = "/home/julien/Padam_Project/Data/Instance Padam/"
+#file_dirprintln = "/home/julien/Padam_Project/Data/Instance Padam/"
 file_dir = "D:/Louise/Cours/2A_Ponts/Projet_departement/Padam_Project/Data/Instance Padam/"
+file_dir = "/Users/gache/Documents/ENPC/2A/semestre_2/Projet_IMI/git/Data/Instance Padam/"
 @time sol,nb = algo_pseudo_en_ligne(file_dir, dist_src_dst,  angle_max, false, true)
-# println(sol)
-
+println(sol)
+compute_solution(sol)
 #sur Instance Padam : contruction cluster/cluster avec argmax et 20 pers. par bus max->

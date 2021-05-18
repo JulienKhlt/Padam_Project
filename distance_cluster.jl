@@ -46,6 +46,17 @@ function dist_max(S1,S2, map)
    return distance_max
 end
 
+function angle_min(S1,S2, map)
+   """
+   INPUT : S1, S2 = Clusters
+           map
+   OUTPUT : angle max (cf Al Kashi) entre les points
+   """
+   S1_points = S1.points
+   S2_points = S2.points
+   angle_min =  minimum([acos(max(-1,min(1,(map[S1.gare.start_point,j]^2+map[i,S1.gare.start_point]^2 -map[i,j]^2)/(2*map[S1.gare.start_point,j]*map[i,S1.gare.start_point])))) for i in S1_points for j in S2_points])
+   return angle_min
+end
 
 function angle_max(S1,S2, map)
    """
@@ -65,7 +76,12 @@ function min_dist_tot(sol, dist)
             dist = function (C1,C2,map)
    OUTPUT : liste triée par ordre croissant des distances (dist) entre tous les couples i,j de clusters différents
    """
+   """
    n = length(sol.clusters)
    L = [[dist(sol.clusters[convert(Int, k%n)+1], sol.clusters[convert(Int, floor(k/n))+1], sol.map), convert(Int, k%n)+1, convert(Int, floor(k/n))+1] for k in 1:n*n-1 if convert(Int, k%n)<convert(Int,floor(k/n))]
-   sort!(L, by=x->x[1])
+   return sort!(L, by=x->x[1])"""
+   n = length(sol.clusters)
+   dist_list = [dist(sol.clusters[convert(Int, k%n)+1], sol.clusters[convert(Int, floor(k/n))+1], sol.map) for k in 1:n*n-1 if convert(Int, k%n)<convert(Int,floor(k/n))]
+   correspondance_list = [[convert(Int, k%n)+1, convert(Int, floor(k/n))+1] for k in 1:n*n-1 if convert(Int, k%n)<convert(Int,floor(k/n))]
+   return correspondance_list[argmin(dist_list)]
 end
