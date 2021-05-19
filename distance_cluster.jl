@@ -76,12 +76,7 @@ function min_dist_tot(sol, dist)
             dist = function (C1,C2,map)
    OUTPUT : liste triée par ordre croissant des distances (dist) entre tous les couples i,j de clusters différents
    """
-   """
    n = length(sol.clusters)
    L = [[dist(sol.clusters[convert(Int, k%n)+1], sol.clusters[convert(Int, floor(k/n))+1], sol.map), convert(Int, k%n)+1, convert(Int, floor(k/n))+1] for k in 1:n*n-1 if convert(Int, k%n)<convert(Int,floor(k/n))]
-   return sort!(L, by=x->x[1])"""
-   n = length(sol.clusters)
-   dist_list = [dist(sol.clusters[convert(Int, k%n)+1], sol.clusters[convert(Int, floor(k/n))+1], sol.map) for k in 1:n*n-1 if convert(Int, k%n)<convert(Int,floor(k/n))]
-   correspondance_list = [[convert(Int, k%n)+1, convert(Int, floor(k/n))+1] for k in 1:n*n-1 if convert(Int, k%n)<convert(Int,floor(k/n))]
-   return correspondance_list[argmin(dist_list)]
+   return sort!(L, by=x->x[1])
 end
